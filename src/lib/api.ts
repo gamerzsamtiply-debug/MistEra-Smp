@@ -1,0 +1,139 @@
+import { supabase } from './supabase';
+
+/** Error thrown for any failed API call. Has the same fields the app's error classifier reads. */
+export class ApiRequestError extends Error {
+  status: number;
+  code: string;
+  userFacingMessage: string;
+  constructor(status: number, code: string, message: string) {
+    super(message || `Request failed (${status})`);
+    this.name = 'ApiRequestError';
+    this.status = status;
+    this.code = code;
+    this.userFacingMessage = message;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Any = any;
+
+/**
+ * Calls a Vercel serverless endpoint (POST /api/<name>), attaching the current
+ * Supabase access token when the visitor is signed in. Authorization is enforced
+ * on the server — the token is only a credential, never a permission.
+ */
+async function call<T = Any>(name: string, input: unknown): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`/api/${name}`, { method: 'POST', headers, body: JSON.stringify(input ?? {}) });
+  let payload: Any = null;
+  try {
+    payload = await res.json();
+  } catch {
+    /* non-JSON response (e.g. a gateway error page) */
+  }
+  if (!res.ok) throw new ApiRequestError(res.status, payload?.error?.code ?? '', payload?.error?.message ?? '');
+  if (payload === null) throw new ApiRequestError(502, 'BAD_GATEWAY', 'The server returned an unexpected response.');
+  return payload as T;
+}
+
+// ───────────── Types the UI relies on ─────────────
+export type ServerStatus = 'Online' | 'Offline' | 'Restarting';
+
+export interface SiteSettings {
+  serverAddress: string;
+  serverPort: number | null;
+  platform: string;
+  serverStatus: ServerStatus;
+  discordUrl: string;
+  voteUrl: string;
+  ticketUrl: string;
+  heroTagline: string;
+  introText: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  heroImage: string;
+  galleryImageOne: string;
+  galleryImageTwo: string;
+  bannerImage: string;
+}
+
+export interface GetSiteOutputType {
+  settings: SiteSettings;
+  steps: { id: string; title: string; instructions: string; imageUrl: string }[];
+}
+
+export interface AdminSaveSettingsInputType {
+  serverAddress: string;
+  serverPort: number;
+  platform: string;
+  serverStatus: ServerStatus;
+  discordUrl: string;
+  voteUrl: string;
+  ticketUrl: string;
+  heroTagline: string;
+  introText: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  heroImage?: string;
+  galleryImageOne?: string;
+  galleryImageTwo?: string;
+  bannerImage?: string;
+}
+
+export interface AdminSavePartnerInputType {
+  id?: string;
+  name: string;
+  category: 'Discord' | 'Hosting' | 'Shop' | 'Server' | 'SMP' | 'Community';
+  description: string;
+  logoUrl: string;
+  websiteUrl: string;
+}
+
+export interface CreateUploadUrlOutputType {
+  bucket: string;
+  path: string;
+  token: string;
+  publicUrl: string;
+}
+
+// ───────────── Endpoints (1:1 with server/api/*.ts) ─────────────
+export const adminDeletePartner = (input?: Any) => call<Any>('adminDeletePartner', input);
+export const adminDeletePost = (input?: Any) => call<Any>('adminDeletePost', input);
+export const adminGetSettings = (input?: Any) => call<Any>('adminGetSettings', input);
+export const adminListAlbum = (input?: Any) => call<Any>('adminListAlbum', input);
+export const adminListPages = (input?: Any) => call<Any>('adminListPages', input);
+export const adminListPosts = (input?: Any) => call<Any>('adminListPosts', input);
+export const adminListSteps = (input?: Any) => call<Any>('adminListSteps', input);
+export const adminListSuggestions = (input?: Any) => call<Any>('adminListSuggestions', input);
+export const adminListUsers = (input?: Any) => call<Any>('adminListUsers', input);
+export const adminLogs = (input?: Any) => call<Any>('adminLogs', input);
+export const adminOverview = (input?: Any) => call<Any>('adminOverview', input);
+export const adminReviewAlbum = (input?: Any) => call<Any>('adminReviewAlbum', input);
+export const adminSavePage = (input?: Any) => call<Any>('adminSavePage', input);
+export const adminSavePartner = (input?: AdminSavePartnerInputType) => call<Any>('adminSavePartner', input);
+export const adminSavePost = (input?: Any) => call<Any>('adminSavePost', input);
+export const adminSaveSettings = (input?: AdminSaveSettingsInputType) => call<Any>('adminSaveSettings', input);
+export const adminSaveStep = (input?: Any) => call<Any>('adminSaveStep', input);
+export const adminSetRole = (input?: Any) => call<Any>('adminSetRole', input);
+export const adminUpdateSuggestion = (input?: Any) => call<Any>('adminUpdateSuggestion', input);
+export const createUploadUrl = (input?: { contentType: string; size: number }) => call<CreateUploadUrlOutputType>('createUploadUrl', input);
+export const deleteMyAlbum = (input?: Any) => call<Any>('deleteMyAlbum', input);
+export const deleteMySuggestion = (input?: Any) => call<Any>('deleteMySuggestion', input);
+export const getHome = (input?: Any) => call<Any>('getHome', input);
+export const getMe = (input?: Any) => call<Any>('getMe', input);
+export const getPage = (input?: Any) => call<Any>('getPage', input);
+export const getPublicProfile = (input?: Any) => call<Any>('getPublicProfile', input);
+export const getSite = (input?: Record<string, never> | undefined) => call<GetSiteOutputType>('getSite', input);
+export const listAlbum = (input?: Any) => call<Any>('listAlbum', input);
+export const listPartners = (input?: Any) => call<Any>('listPartners', input);
+export const listPosts = (input?: Any) => call<Any>('listPosts', input);
+export const listStaff = (input?: Any) => call<Any>('listStaff', input);
+export const logClientError = (input?: Any) => call<Any>('logClientError', input);
+export const myAlbum = (input?: Any) => call<Any>('myAlbum', input);
+export const mySuggestions = (input?: Any) => call<Any>('mySuggestions', input);
+export const submitAlbum = (input?: Any) => call<Any>('submitAlbum', input);
+export const submitSuggestion = (input?: Any) => call<Any>('submitSuggestion', input);
+export const updateMyProfile = (input?: Any) => call<Any>('updateMyProfile', input);
