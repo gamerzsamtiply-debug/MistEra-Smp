@@ -43,5 +43,14 @@
 - Hero image/logo marked high priority; `decoding="async"` on lazy images; long-lived cache headers for hashed assets.
 
 ## Fonts
-- Body text: Minecraft; headlines (h1–h4, `.font-display`, navbar brand): Minecrafter. Self-hosted in `public/fonts`; Google Fonts removed (CSP tightened). Colours unchanged.
-- Minecrafter's page says "Freeware, Non-Commercial" — check its licence if the server earns money.
+- Body text: Minecraft; headlines (h1–h4, `.font-display`, navbar brand): Minecraft Bold. Self-hosted in `public/fonts`; Google Fonts removed (CSP tightened). Colours unchanged.
+- Check the licences of both font files (Minecraft Bold's readme says to) if the server earns money.
+
+## Routing fix
+- `vercel.json` rewrites unknown/app URLs to `/app-shell` (extension-less, because `cleanUrls` is on). Pointing at `/app-shell.html` made Vercel return its own 404 for /admin, /login, etc.
+
+## Resilience
+- Pages' JS is loaded with `lazyRetry` (5 silent retries, then one automatic reload) and the other pages are pre-downloaded in the background.
+- `ErrorBoundary` re-mounts a crashed section up to 5 times before showing the 500 page; the 500 page is only reached if all tries fail.
+- Read-only requests (`retries` option) now also retry on server (5xx) errors, up to 5 times.
+- The loading indicator for page changes and the first load is only shown on a visitor's first visit (`mistera-visited` in localStorage).

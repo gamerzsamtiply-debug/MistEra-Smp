@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Self-hosted pixel fonts: Minecraft for body text, Minecrafter for headlines (public/fonts). Single weight each,
+/* Self-hosted pixel fonts: Minecraft for body text, Minecraft Bold for headlines (public/fonts). Single weight each,
    so the weight range is declared to stop browsers from faking bold. */
 @font-face { font-family: 'Minecraft'; src: url('/fonts/minecraft.woff') format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Minecrafter'; src: url('/fonts/minecrafter.woff') format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Minecraft Bold'; src: url('/fonts/minecraft-bold.woff') format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
 
 @layer base {
   :root {
@@ -59,8 +59,8 @@
     --chart-4: 142 60% 48%;
     --chart-5: 215 22% 68%;
     --font-sans: 'Minecraft', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    /* Minecrafter lacks ' @ & | © — … → ·; those glyphs fall back to Minecraft, then the system font */
-    --font-display: 'Minecrafter', 'Minecraft', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    /* Minecraft Bold lacks → … ’ ©; those glyphs fall back to Minecraft, then the system font */
+    --font-display: 'Minecraft Bold', 'Minecraft', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 

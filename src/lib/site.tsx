@@ -28,12 +28,12 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(() => {
     setError(null);
-    run('Load site', () => getSite({}), { retries: 1, silent: true }).then((d) => { if (d) { setSite(d); writeCache(d); } }).catch((e) => setError(isAppError(e) ? e : null));
+    run('Load site', () => getSite({}), { retries: 5, silent: true }).then((d) => { if (d) { setSite(d); writeCache(d); } }).catch((e) => setError(isAppError(e) ? e : null));
   }, []);
   const reloadMe = useCallback(() => {
     if (!user) { setMe(null); setMeLoading(false); return; }
     setMeLoading(true);
-    run('Load profile', () => getMe({}), { retries: 1, silent: true }).then((d) => setMe((d as Me) ?? null)).catch(() => setMe(null)).finally(() => setMeLoading(false));
+    run('Load profile', () => getMe({}), { retries: 5, silent: true }).then((d) => setMe((d as Me) ?? null)).catch(() => setMe(null)).finally(() => setMeLoading(false));
   }, [user]);
 
   useEffect(reload, [reload]);

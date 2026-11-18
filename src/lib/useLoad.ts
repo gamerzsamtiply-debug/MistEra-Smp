@@ -28,7 +28,7 @@ export function useLoad<T>(operation: string, fn: () => Promise<T>, deps: unknow
     setError(null);
     let p = key && !force ? (inflight.get(key) as Promise<T | undefined> | undefined) : undefined;
     if (!p) {
-      p = run(operation, () => fnRef.current(), { retries: 1, silent: true });
+      p = run(operation, () => fnRef.current(), { retries: 5, silent: true });
       if (key) { inflight.set(key, p); p.finally(() => inflight.delete(key)).catch(() => undefined); }
     }
     p.then((d) => { const v = (d ?? null) as T | null; if (key && v !== null) store.set(key, { data: v, at: Date.now() }); setData(v); })

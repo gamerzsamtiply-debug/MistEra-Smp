@@ -54,9 +54,11 @@ export async function run<T>(operation: string, fn: () => Promise<T>, opts: { su
       return result;
     } catch (err) {
       last = classify(err);
-      // Only connection problems are retried. A server error is reported as it is: retrying it just repeats the failure.
-      if (!['network', 'timeout'].includes(last.kind)) break;
-      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+      // Connection problems are always retried. Server (5xx) errors are retried only when the caller opted in with
+      // `retries` — that is done for read-only requests, which are safe to repeat; writes never pass `retries`.
+      const retryable = opts.retries ? ['network', 'timeout', 'server'] : ['network', 'timeout'];
+      if (!retryable.includes(last.kind)) break;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, Math.min(600 * (i + 1), 2000)));
     }
   }
   if (last) {

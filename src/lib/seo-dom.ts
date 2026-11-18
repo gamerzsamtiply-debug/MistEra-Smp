@@ -38,5 +38,7 @@ export function useRouteSeo() {
   const { pathname } = useLocation();
   const { settings } = useSite();
   const discord = settings?.discordUrl || '';
-  useEffect(() => { applySeo(pathname, /^https:\/\//i.test(discord) ? [discord] : []); }, [pathname, discord]);
+  useEffect(() => {
+    try { applySeo(pathname, /^https:\/\//i.test(discord) ? [discord] : []); } catch (e) { console.warn('[seo] could not update page tags', e); } // SEO must never break the app
+  }, [pathname, discord]);
 }
