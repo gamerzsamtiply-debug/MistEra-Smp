@@ -54,7 +54,8 @@ export async function run<T>(operation: string, fn: () => Promise<T>, opts: { su
       return result;
     } catch (err) {
       last = classify(err);
-      if (!['network', 'timeout', 'server'].includes(last.kind)) break;
+      // Only connection problems are retried. A server error is reported as it is: retrying it just repeats the failure.
+      if (!['network', 'timeout'].includes(last.kind)) break;
       if (i < attempts - 1) await new Promise((r) => setTimeout(r, 600 * (i + 1)));
     }
   }

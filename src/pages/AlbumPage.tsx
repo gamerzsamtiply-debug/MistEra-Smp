@@ -10,6 +10,7 @@ import UserChip from '../components/UserChip';
 import SubmitImageDialog from '../components/SubmitImageDialog';
 import { EmptyState, GridSkeleton, InlineError } from '../components/States';
 import { useLoad } from '../lib/useLoad';
+import { albumAlt } from '../lib/format';
 
 export default function AlbumPage() {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ export default function AlbumPage() {
             {data.images.map((a, i) => (
               <Reveal key={a.id} delay={(i % 3) * 0.05}>
                 <div className="group break-inside-avoid overflow-hidden rounded-2xl border border-border bg-card">
-                  <button className="block w-full overflow-hidden bg-secondary" onClick={() => setView(a.id)}><img src={a.imageUrl} alt={a.caption || 'Album image'} loading="lazy" className="w-full transition-transform duration-500 group-hover:scale-[1.03]" /></button>
+                  <button className="block w-full overflow-hidden bg-secondary" onClick={() => setView(a.id)}><img src={a.imageUrl} alt={albumAlt(a)} loading="lazy" decoding="async" className="w-full transition-transform duration-500 group-hover:scale-[1.03]" /></button>
                   <div className="flex items-center justify-between gap-2 p-4"><UserChip user={a.uploader} />{a.caption && <p className="truncate text-sm text-muted-foreground">{a.caption}</p>}</div>
                 </div>
               </Reveal>
@@ -40,7 +41,7 @@ export default function AlbumPage() {
       <Dialog open={!!cur} onOpenChange={(o) => !o && setView(null)}>
         <DialogContent className="max-w-4xl p-2">
           <DialogTitle className="sr-only">{cur?.caption || 'Album image'}</DialogTitle>
-          {cur && <><img src={cur.imageUrl} alt={cur.caption} className="max-h-[75vh] w-full rounded-lg object-contain" /><div className="flex items-center justify-between p-3"><UserChip user={cur.uploader} size="md" /><p className="text-sm text-muted-foreground">{cur.caption}</p></div></>}
+          {cur && <><img src={cur.imageUrl} alt={albumAlt(cur)} className="max-h-[75vh] w-full rounded-lg object-contain" /><div className="flex items-center justify-between p-3"><UserChip user={cur.uploader} size="md" /><p className="text-sm text-muted-foreground">{cur.caption}</p></div></>}
         </DialogContent>
       </Dialog>
     </>

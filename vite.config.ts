@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { seoPlugin } from './seo/vite-plugin-seo.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,7 +36,7 @@ function localApi(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), localApi()],
+  plugins: [react(), seoPlugin(), localApi()],
   resolve: {
     dedupe: ['react', 'react-dom'],
     alias: {

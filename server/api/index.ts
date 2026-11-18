@@ -37,8 +37,22 @@ import mySuggestions from './mySuggestions.js';
 import submitAlbum from './submitAlbum.js';
 import submitSuggestion from './submitSuggestion.js';
 import updateMyProfile from './updateMyProfile.js';
+import adminDeleteStaff from './adminDeleteStaff.js';
+import adminLinkStaff from './adminLinkStaff.js';
+import adminListStaff from './adminListStaff.js';
+import adminSaveStaff from './adminSaveStaff.js';
+import adminStaffClaimCode from './adminStaffClaimCode.js';
+import claimStaff from './claimStaff.js';
+import register from './register.js';
 
 export const endpoints: Record<string, Endpoint> = {
+  adminDeleteStaff,
+  adminLinkStaff,
+  adminListStaff,
+  adminSaveStaff,
+  adminStaffClaimCode,
+  claimStaff,
+  register,
   adminDeletePartner,
   adminDeletePost,
   adminGetSettings,

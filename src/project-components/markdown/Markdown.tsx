@@ -17,7 +17,12 @@ interface MarkdownProps {
   children: string;
   /** Additional class names merged onto the prose wrapper. */
   className?: string;
+  /** Render `# Heading` as an <h2>. Use on pages that already have their own <h1> so there is only one per page. */
+  demoteH1?: boolean;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DEMOTE_H1 = { h1: ({ node: _node, ...props }: any) => <h2 {...props} /> };
 
 /**
  * Renders a markdown string as styled HTML. Use this for read-only rendering
@@ -43,12 +48,13 @@ interface MarkdownProps {
  * <Markdown>{post.body}</Markdown>
  * ```
  */
-export function Markdown({ children, className }: MarkdownProps) {
+export function Markdown({ children, className, demoteH1 }: MarkdownProps) {
   return (
     <div className={cn('prose max-w-none', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeAllowOnlyMark, rehypeRaw, rehypeSanitizeAllowList]}
+        components={demoteH1 ? DEMOTE_H1 : undefined}
       >
         {children}
       </ReactMarkdown>

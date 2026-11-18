@@ -13,7 +13,7 @@ import { useSite } from '../../lib/site';
 import { run } from '../../lib/errors';
 import { fmtDate } from '../../lib/format';
 
-const FILTERS = ['All', 'Owner', 'Admin', 'Moderator', 'Staff', 'Member'];
+const FILTERS = ['All', 'Admin', 'Moderator', 'Staff', 'Member'];
 const PAGE = 20;
 
 export default function UsersTab() {
@@ -37,11 +37,11 @@ export default function UsersTab() {
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search username…" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></div>
         <Select value={role} onValueChange={(v) => { setRole(v); setPage(0); }}><SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger><SelectContent>{FILTERS.map((f) => <SelectItem key={f} value={f}>{f === 'All' ? 'All roles' : f}</SelectItem>)}</SelectContent></Select>
       </div>
-      <p className="text-xs text-muted-foreground">{me?.isOwner ? 'As Owner you can grant or remove Admin access.' : 'Only the Owner can grant or remove Admin access.'} The Owner role is fixed to the owner account.</p>
+      <p className="text-xs text-muted-foreground">{me?.isOwner ? 'You can grant or remove Admin access.' : 'Only the site owner can grant or remove Admin access.'} These roles control admin permissions; the public Staff page is managed in the Staff tab. The site owner account always shows as Admin and can't be changed.</p>
       {loading ? <Spinner /> : error ? <InlineError error={error} onRetry={reload} /> : !list.length ? <EmptyState icon={Users} title="No users found" message="Try a different search or filter." /> : (
         <>
           <div className="divide-y divide-border rounded-2xl border border-border bg-card">{list.slice(page * PAGE, page * PAGE + PAGE).map((u) => {
-            const locked = u.role === 'Owner' || u.id === me?.profile.id || (!me?.isOwner && u.role === 'Admin');
+            const locked = u.locked || u.id === me?.profile.id || (!me?.isOwner && u.role === 'Admin');
             return (
               <div key={u.id} className="flex flex-wrap items-center gap-3 p-4">
                 <Link to={`/u/${u.id}`} className="flex min-w-0 flex-1 items-center gap-3"><UserAvatar username={u.username} avatarUrl={u.avatarUrl} /><div className="min-w-0"><p className="truncate font-semibold">@{u.username}</p><p className="text-xs text-muted-foreground">Joined {fmtDate(u.joinedAt)}</p></div></Link>

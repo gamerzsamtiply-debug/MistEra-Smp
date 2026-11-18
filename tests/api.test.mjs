@@ -37,7 +37,7 @@ async function test(title, fn) {
 }
 const OWNER = 'gamerzsamtiply@gmail.com';
 const users = () => {
-  fake.addUser('t-owner', { email: OWNER, meta: { full_name: 'Sam Tiply' } });
+  fake.addUser('t-owner', { email: OWNER, meta: { full_name: 'Sam Tiply' }, providers: ['email', 'google'] });
   fake.addUser('t-fake-owner', { email: OWNER.toUpperCase(), verified: false });
   fake.addUser('t-admin', { email: 'admin@example.com', meta: { first_name: 'Ada' } });
   fake.addUser('t-mod', { email: 'mod@example.com' });
@@ -79,7 +79,8 @@ await test('every authenticated endpoint returns 401 without a token or with a b
     adminLogs: { type: 'activity' }, adminReviewAlbum: { id: 'x', action: 'Delete' }, adminSavePage: { slug: 'terms', title: 't', content: 'c', published: false },
     adminSavePartner: { name: 'abc', category: 'Shop', description: '', logoUrl: '', websiteUrl: '' }, adminSavePost: { kind: 'Update', title: 'abc', body: 'b', imageUrl: '', published: false, publishedAt: '' },
     adminSaveStep: { slot: 1, title: 't', instructions: 'i', imageUrl: '', enabled: true, sortOrder: 1 }, adminSetRole: { profileId: 'x', role: 'Staff' }, adminUpdateSuggestion: { id: 'x', action: 'Open' },
-    adminDeletePartner: { id: 'x' }, adminDeletePost: { id: 'x' },
+    adminDeletePartner: { id: 'x' }, adminDeletePost: { id: 'x' }, adminDeleteStaff: { id: 'x' }, adminSaveStaff: { name: 'abc', avatarUrl: '', position: 'Staff' },
+    adminLinkStaff: { id: 'x', username: null }, adminStaffClaimCode: { id: 'x' }, claimStaff: { code: 'AAAA-BBBB-CCCC-DDDD' },
     adminSaveSettings: { serverAddress: 'a.b', serverPort: 1, platform: '', serverStatus: 'Online', discordUrl: '', voteUrl: '', ticketUrl: '', heroTagline: '', introText: '', maintenanceMode: false, maintenanceMessage: '' },
   };
   for (const n of names) {
@@ -96,9 +97,9 @@ await test('first login creates a Member profile; usernames are unique and valid
   assert.notEqual(a.profile.username, b.profile.username);
   assert.match(a.profile.username, /^[a-zA-Z0-9_]{3,20}$/); assert.match(b.profile.username, /^[a-zA-Z0-9_]{3,20}$/);
 });
-await test('only the VERIFIED owner email becomes Owner; unverified look-alike stays Member', async () => {
+await test('owner account (Google-verified email) has full access but is DISPLAYED as Admin; look-alike stays Member', async () => {
   users();
-  const o = await ok('getMe', {}, 't-owner'); assert.equal(o.profile.role, 'Owner'); assert.equal(o.isOwner, true); assert.equal(o.isAdmin, true);
+  const o = await ok('getMe', {}, 't-owner'); assert.equal(o.profile.role, 'Admin'); assert.equal(o.isOwner, true); assert.equal(o.isAdmin, true);
   const f = await ok('getMe', {}, 't-fake-owner'); assert.equal(f.profile.role, 'Member'); assert.equal(f.isAdmin, false);
   await denied('adminGetSettings', {}, 't-fake-owner', 403, 'FORBIDDEN');
 });
@@ -289,18 +290,44 @@ await test('profile: validation, uniqueness, public profile, bad ids', async () 
 });
 
 console.log('\nStaff directory, overview, logs, uploads');
-await test('staff lists only staff roles, grouped data present on home & staff page', async () => {
+await test('staff page: admin-added entries need no account; owner account shows as Admin; Owner is a separate position', async () => {
   await seedStaff(); await ok('getMe', {}, 't-m1');
-  const staff = (await ok('listStaff')).staff; assert.deepEqual(staff.map((s) => s.role).sort(), ['Admin', 'Moderator', 'Owner']);
-  assert.deepEqual((await ok('getHome')).staff.map((s) => s.role), ['Owner', 'Admin', 'Moderator']);
+  await ok('adminSaveStaff', { name: 'Alex', avatarUrl: '', position: 'Moderator' }, 't-admin');
+  await ok('adminSaveStaff', { name: 'Riley', avatarUrl: '', position: 'Owner' }, 't-owner');
+  await denied('adminSaveStaff', { name: 'Mallory', avatarUrl: '', position: 'Owner' }, 't-admin', 403);   // only the owner account hands out Owner/Admin
+  await denied('adminSaveStaff', { name: 'Mallory', avatarUrl: '', position: 'Staff' }, 't-m1', 403);      // members cannot manage staff
+  await denied('adminSaveStaff', { name: 'Mallory', avatarUrl: '', position: 'Staff' }, undefined, 401);
+  const staff = (await ok('listStaff')).staff;
+  assert.deepEqual(staff.map((s) => [s.name, s.position]), [['Riley', 'Owner'], ['Sam', 'Admin'], ['Alex', 'Moderator']]);
+  assert.deepEqual((await ok('getHome')).staff.map((s) => s.position), ['Owner', 'Admin', 'Moderator']);
   assert.ok(!JSON.stringify(staff).includes('@example.com'));                            // no emails leak
+});
+await test('staff account linking: one-time code, expiry, single use, admin link/unlink', async () => {
+  await seedStaff(); await ok('getMe', {}, 't-m1');
+  await ok('adminSaveStaff', { name: 'Alex', avatarUrl: '', position: 'Helper' }, 't-admin');
+  const alex = (await ok('adminListStaff', {}, 't-admin')).staff.find((s) => s.name === 'Alex');
+  const { code } = await ok('adminStaffClaimCode', { id: alex.id }, 't-admin');
+  await denied('claimStaff', { code: 'AAAA-BBBB-CCCC-DDDD' }, 't-m1', 404);                              // wrong code
+  await denied('claimStaff', { code }, undefined, 401);
+  await ok('claimStaff', { code }, 't-m1');
+  assert.equal((await ok('getMe', {}, 't-m1')).staffPosition, 'Helper');
+  assert.equal((await ok('getMe', {}, 't-m1')).isAdmin, false);                                          // linking never grants access
+  await denied('claimStaff', { code }, 't-m2', 404);                                                      // single use
+  await ok('adminLinkStaff', { id: alex.id, username: null }, 't-admin');
+  assert.equal((await ok('getMe', {}, 't-m1')).staffPosition, null);
+});
+await test('register creates an immediately usable account; duplicates and the owner address are rejected cleanly', async () => {
+  await ok('register', { email: 'new@example.com', password: 'longenough1' });
+  await denied('register', { email: 'new@example.com', password: 'longenough1' }, undefined, 409, 'CONFLICT');
+  await denied('register', { email: 'x@example.com', password: 'short' }, undefined, 400);
+  await denied('register', { email: OWNER, password: 'longenough1' }, undefined, 400);
 });
 await test('overview counts and error log flow (client errors are scrubbed)', async () => {
   await seedStaff(); await ok('getMe', {}, 't-m1');
   await ok('submitAlbum', { imageUrl: 'https://fake.supabase.co/storage/v1/object/public/uploads/u/a.png', caption: '' }, 't-m1');
   await ok('submitSuggestion', { title: 'Idea one', description: 'A reasonably long description.' }, 't-m1');
   const ov = await ok('adminOverview', {}, 't-owner');
-  assert.deepEqual(ov.counts, { users: 4, staff: 3, partners: 0, pending: 1, suggestions: 1, openSuggestions: 1 });
+  assert.deepEqual(ov.counts, { users: 4, staff: 1, partners: 0, pending: 1, suggestions: 1, openSuggestions: 1 });
   assert.ok(ov.recent.length > 0 && ov.recent.length <= 10);
   await ok('logClientError', { operation: 'Load site', category: 'request', correlationId: 'ABCD1234', message: 'server: token=eyJhbGciOi.secret failed' });
   const logs = (await ok('adminLogs', { type: 'error' }, 't-owner')).logs;
@@ -374,7 +401,7 @@ await test('OWNER_USER_ID pins the Owner role to one exact auth user', async () 
   try {
     assert.equal((await ok('getMe', {}, 't-owner')).profile.role, 'Member');                  // right email, wrong id
     fake.addUser('t-real-owner', { id: '00000000-0000-4000-8000-0000000000aa', email: OWNER });
-    assert.equal((await ok('getMe', {}, 't-real-owner')).profile.role, 'Owner');
+    const ro = await ok('getMe', {}, 't-real-owner'); assert.equal(ro.profile.role, 'Admin'); assert.equal(ro.isOwner, true);
   } finally { delete process.env.OWNER_USER_ID; }
 });
 await test('non-UUID ids on save/delete are a clean 404, never a 500', async () => {

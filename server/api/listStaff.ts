@@ -1,12 +1,9 @@
 import { z } from 'zod';
 import { publicEndpoint } from '../endpoint.js';
-import { db, must } from '../db.js';
-import { STAFF_ROLES, toPublicUser } from '../lib.js';
-import type { ProfileRow } from '../types.js';
+import { buildStaffList } from '../lib.js';
 
-// Lists staff members (the page groups them by role)
+// Public team list (no account needed to be listed)
 export default publicEndpoint(z.object({}), async () => {
-  const r = await db().from('profiles').select('*').in('role', STAFF_ROLES).order('joined_at', { ascending: true }).limit(1000);
-  const rows = (must(r, 'profiles.staff') ?? []) as ProfileRow[];
-  return { staff: rows.map(toPublicUser) };
+  const staff = await buildStaffList();
+  return { staff: staff.map(({ id, name, avatarUrl, position, profileId }) => ({ id, name, avatarUrl, position, profileId })) };
 });

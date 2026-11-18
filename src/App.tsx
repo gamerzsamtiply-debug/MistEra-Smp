@@ -1,25 +1,24 @@
-import { useState, type ReactNode } from 'react';
+import { lazy, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Toaster } from '@project/components/ui/sonner';
 import { SiteProvider, useSite } from './lib/site';
 import Layout from './components/Layout';
-import Intro from './components/Intro';
 import ErrorPage from './components/ErrorPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Spinner } from './components/States';
 import Home from './pages/Home';
-import ContentPage from './pages/ContentPage';
-import StaffPage from './pages/StaffPage';
-import PartnersPage from './pages/PartnersPage';
-import PostsPage from './pages/PostsPage';
-import AlbumPage from './pages/AlbumPage';
-import PublicProfile from './pages/PublicProfile';
-import ProfilePage from './pages/ProfilePage';
-import SuggestionsPage from './pages/SuggestionsPage';
-import AdminPage from './pages/AdminPage';
-import LoginPage from './pages/LoginPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
+const ContentPage = lazy(() => import('./pages/ContentPage'));
+const StaffPage = lazy(() => import('./pages/StaffPage'));
+const PartnersPage = lazy(() => import('./pages/PartnersPage'));
+const PostsPage = lazy(() => import('./pages/PostsPage'));
+const AlbumPage = lazy(() => import('./pages/AlbumPage'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SuggestionsPage = lazy(() => import('./pages/SuggestionsPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 
 if (typeof document !== 'undefined') document.documentElement.classList.add('dark');
 
@@ -53,14 +52,9 @@ function Gate({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  // sessionStorage can throw (Safari private mode, blocked cookies); the intro should never take the site down.
-  const [intro, setIntro] = useState(() => {
-    try { return !sessionStorage.getItem('mistera-intro'); } catch { return true; }
-  });
   return (
     <ErrorBoundary full>
       <SiteProvider>
-        {intro && <Intro onDone={() => { try { sessionStorage.setItem('mistera-intro', '1'); } catch { /* ignore */ } setIntro(false); }} />}
         <BrowserRouter>
           <Gate>
             <Routes>

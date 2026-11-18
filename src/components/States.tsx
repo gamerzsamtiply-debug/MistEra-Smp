@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Loader2, type LucideIcon, AlertTriangle, RefreshCw, WifiOff, Lock, ShieldX, SearchX } from 'lucide-react';
 import { Button } from '@project/components/ui/button';
 import { Skeleton } from '@project/components/ui/skeleton';
@@ -15,11 +14,11 @@ export function GridSkeleton({ count = 6, className = 'h-56' }: { count?: number
 
 export function EmptyState({ icon: Icon, title, message }: { icon: LucideIcon; title: string; message: string }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-14 text-center">
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-14 text-center">
       <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-secondary"><Icon className="h-6 w-6 text-primary" /></div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">{message}</p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -28,8 +27,8 @@ const ICONS: Record<string, LucideIcon> = { network: WifiOff, timeout: RefreshCw
 export function InlineError({ error, onRetry }: { error: AppError; onRetry?: () => void }) {
   const Icon = ICONS[error.kind] ?? AlertTriangle;
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-12 text-center" role="alert">
-      <motion.div initial={{ rotate: -8 }} animate={{ rotate: 0 }} className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-destructive/15"><Icon className="h-6 w-6 text-destructive" /></motion.div>
+    <div className="flex flex-col items-center rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-12 text-center" role="alert">
+      <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-destructive/15"><Icon className="h-6 w-6 text-destructive" /></div>
       <h3 className="text-lg font-semibold">{error.title}</h3>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">{error.message}</p>
       <div className="mt-5 flex gap-2">
@@ -37,6 +36,6 @@ export function InlineError({ error, onRetry }: { error: AppError; onRetry?: () 
         {onRetry && error.kind !== 'forbidden' && <Button variant="outline" onClick={onRetry}><RefreshCw className="mr-2 h-4 w-4" />Try again</Button>}
       </div>
       <p className="mt-4 font-mono text-[11px] text-muted-foreground/70">Reference: {error.correlationId}</p>
-    </motion.div>
+    </div>
   );
 }

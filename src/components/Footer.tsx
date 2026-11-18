@@ -10,18 +10,18 @@ export default function Footer() {
     <footer className="mt-24 border-t border-border bg-card/40">
       <div className="container mx-auto grid gap-10 px-4 py-12 md:grid-cols-[1.3fr_1fr_1fr]">
         <div className="space-y-4">
-          <img src={LOGO_FULL} alt="MistEra SMP" className="h-24 w-auto object-contain" />
+          <img src={LOGO_FULL} alt="MistEra SMP logo" loading="lazy" decoding="async" className="h-24 w-auto object-contain" />
           <p className="max-w-sm text-sm text-muted-foreground">A Bangladesh-based, 24/7 Minecraft Bedrock survival community.</p>
           <WhitelistNotice compact />
         </div>
         <div>
-          <h4 className="mb-3 font-semibold">Explore</h4>
+          <p className="mb-3 font-display font-semibold tracking-[-0.02em]">Explore</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {[['/information', 'Information'], ['/staff', 'Staff'], ['/partners', 'Partners'], ['/announcements', 'Announcements'], ['/updates', 'Updates'], ['/album', 'Community Album']].map(([to, l]) => <li key={to}><Link className="hover:text-foreground" to={to}>{l}</Link></li>)}
           </ul>
         </div>
         <div>
-          <h4 className="mb-3 font-semibold">Community</h4>
+          <p className="mb-3 font-display font-semibold tracking-[-0.02em]">Community</p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {settings?.discordUrl && <li><a className="hover:text-foreground" href={settings.discordUrl} target="_blank" rel="noreferrer">Discord</a></li>}
             {settings?.voteUrl && <li><a className="hover:text-foreground" href={settings.voteUrl} target="_blank" rel="noreferrer">Vote for us</a></li>}

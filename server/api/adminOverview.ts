@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { authEndpoint } from '../endpoint.js';
 import { db, must } from '../db.js';
-import { countRows, requireAdmin, STAFF_ROLES } from '../lib.js';
+import { buildStaffList, countRows, requireAdmin } from '../lib.js';
 import type { ActivityLogRow } from '../types.js';
 
 // Returns admin dashboard counts and recent activity
@@ -9,7 +9,7 @@ export default authEndpoint(z.object({}), async ({ user }) => {
   await requireAdmin(user);
   const [users, staff, partners, pending, suggestions, openSuggestions, recentRows] = await Promise.all([
     countRows('profiles'),
-    countRows('profiles', (q) => q.in('role', STAFF_ROLES)),
+    buildStaffList().then((s) => s.length).catch(() => 0),
     countRows('partners'),
     countRows('album_submissions', (q) => q.eq('status', 'Pending')),
     countRows('suggestions'),

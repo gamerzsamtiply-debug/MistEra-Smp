@@ -13,7 +13,7 @@ export default function HowToJoin({ steps }: { steps: Step[] }) {
               <h3 className="text-xl font-bold">{s.title}</h3>
               <p className="mt-2 whitespace-pre-line text-muted-foreground">{s.instructions}</p>
             </div>
-            {s.imageUrl && <img src={s.imageUrl} alt="" loading="lazy" className="w-full object-cover md:w-64" />}
+            {s.imageUrl && <img src={s.imageUrl} alt={`Step ${i + 1}: ${s.title}`} loading="lazy" decoding="async" className="w-full object-cover md:w-64" />}
           </div>
         </Reveal>
       ))}

@@ -1,0 +1,11 @@
+# https://misterasmp.fun/robots.txt
+User-agent: *
+Allow: /
+# Back-end API and the admin panel are not for search results.
+Disallow: /api/
+Disallow: /admin
+# Account pages (/login, /profile, /suggestions, /reset-password) and player profiles (/u/…) stay crawlable on
+# purpose: they send an "X-Robots-Tag: noindex" header (see vercel.json), which crawlers can only obey if
+# they are allowed to fetch the page. Do not block /assets/: Google needs the JS and CSS to render the site.
+
+Sitemap: https://misterasmp.fun/sitemap.xml

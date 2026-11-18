@@ -17,22 +17,78 @@ export function db(): SupabaseClient {
     console.error('[config] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set on the server.');
     throw new ApiError('INTERNAL', 'The server is not configured correctly.');
   }
-  client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+  client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: resilientFetch } });
   return client;
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Supabase calls over the network occasionally fail transiently (cold DNS, a reset connection, a 502 from the
+ * gateway). Reads (GET/HEAD) are safe to repeat, so they are retried a couple of times with a short back-off
+ * and every call has a timeout so a hung connection can't run into Vercel's function limit.
+ * Writes are never repeated automatically.
+ */
+const resilientFetch: typeof fetch = async (input, init) => {
+  const method = (init?.method ?? 'GET').toUpperCase();
+  const safe = method === 'GET' || method === 'HEAD';
+  const attempts = safe ? 3 : 1;
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    const ctrl = new AbortController();
+    const timer = init?.signal ? null : setTimeout(() => ctrl.abort(), 9000);
+    try {
+      const res = await fetch(input, init?.signal ? init : { ...init, signal: ctrl.signal });
+      if (safe && res.status >= 502 && res.status <= 504 && i < attempts - 1) {
+        await sleep(150 * (i + 1));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      lastError = e;
+      if (i < attempts - 1) await sleep(150 * (i + 1));
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+  throw lastError;
+};
 
 interface DbResult<T> {
   data: T | null;
   error: { message: string; code?: string } | null;
 }
 
-/** Unwraps a Supabase result; logs the real error server-side and throws a generic one. */
+/**
+ * Unwraps a Supabase result; logs the real error server-side. Errors that are caused by the request
+ * (duplicate value, bad id, value rejected by a constraint) become 4xx responses instead of HTTP 500.
+ */
 export function must<T>(res: DbResult<T>, what: string): T {
   if (res.error) {
     console.error(`[db] ${what}:`, res.error);
+    const code = res.error.code ?? '';
+    if (code === '23505') throw new ApiError('CONFLICT', 'That already exists.');
+    if (['22P02', '22001', '22003', '23502', '23503', '23514'].includes(code)) throw new ApiError('BAD_REQUEST', 'Some information is invalid. Please review it and try again.');
     throw new ApiError('INTERNAL', 'Database error');
   }
   return res.data as T;
+}
+
+/** True when the table/function is missing, i.e. a migration has not been applied yet. */
+export function isMissingRelation(err: { code?: string } | null | undefined): boolean {
+  return err?.code === '42P01' || err?.code === 'PGRST205' || err?.code === 'PGRST202';
+}
+
+/**
+ * Like must(), but for optional page sections: a missing table (migration not applied yet) or a failed read
+ * yields `fallback` and is logged, so one broken section can never turn a whole page into an HTTP 500.
+ */
+export function mustOr<T>(res: DbResult<T>, what: string, fallback: T): T {
+  if (res.error) {
+    console.error(`[db] ${what}:`, res.error);
+    return fallback;
+  }
+  return (res.data ?? fallback) as T;
 }
 
 /** Postgres unique-violation. */

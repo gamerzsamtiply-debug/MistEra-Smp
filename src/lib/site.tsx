@@ -5,21 +5,30 @@ import { run, isAppError, type AppError } from './errors';
 
 export type Settings = GetSiteOutputType['settings'];
 export type Step = GetSiteOutputType['steps'][0];
-export interface Me { profile: { id: string; username: string; bio: string; avatarUrl: string; role: string }; isOwner: boolean; isAdmin: boolean }
+export interface Me { profile: { id: string; username: string; bio: string; avatarUrl: string; role: string }; staffPosition: string | null; isOwner: boolean; isAdmin: boolean }
 
 interface SiteCtx { settings: Settings | null; steps: Step[]; me: Me | null; meLoading: boolean; error: AppError | null; reload: () => void; reloadMe: () => void }
 const Ctx = createContext<SiteCtx | null>(null);
 
+// The last known site settings are kept so a return visit paints immediately; they are refreshed in the background.
+const CACHE_KEY = 'mistera-site-v1';
+function readCache(): GetSiteOutputType | null {
+  try { const v = localStorage.getItem(CACHE_KEY); return v ? (JSON.parse(v) as GetSiteOutputType) : null; } catch { return null; }
+}
+function writeCache(d: GetSiteOutputType) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch { /* storage unavailable */ }
+}
+
 export function SiteProvider({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
-  const [site, setSite] = useState<GetSiteOutputType | null>(null);
+  const [site, setSite] = useState<GetSiteOutputType | null>(readCache);
   const [error, setError] = useState<AppError | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [meLoading, setMeLoading] = useState(true);
 
   const reload = useCallback(() => {
     setError(null);
-    run('Load site', () => getSite({}), { retries: 2, silent: true }).then((d) => d && setSite(d)).catch((e) => setError(isAppError(e) ? e : null));
+    run('Load site', () => getSite({}), { retries: 1, silent: true }).then((d) => { if (d) { setSite(d); writeCache(d); } }).catch((e) => setError(isAppError(e) ? e : null));
   }, []);
   const reloadMe = useCallback(() => {
     if (!user) { setMe(null); setMeLoading(false); return; }

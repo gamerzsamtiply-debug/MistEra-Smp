@@ -13,18 +13,19 @@ export function reset() {
   state.users = {};
   state.tick = 0;
 }
-export function addUser(token, { id = randomUUID(), email, verified = true, meta = {} }) {
-  state.users[token] = { id, email, email_confirmed_at: verified ? '2026-01-01T00:00:00Z' : null, user_metadata: meta };
+export function addUser(token, { id = randomUUID(), email, verified = true, meta = {}, providers = ['email'] }) {
+  state.users[token] = { id, email, email_confirmed_at: verified ? '2026-01-01T00:00:00Z' : null, user_metadata: meta, app_metadata: { provider: providers[0], providers } };
   return id;
 }
 export const rows = (t) => (state.tables[t] ??= []);
 
-const UNIQUE = { profiles: ['user_id', 'username'], join_steps: ['slot'], content_pages: ['slug'], site_settings: ['key'] };
+const UNIQUE = { staff_members: ['profile_id', 'claim_hash'], profiles: ['user_id', 'username'], join_steps: ['slot'], content_pages: ['slug'], site_settings: ['key'] };
 const TIME = { profiles: 'joined_at', album_submissions: 'submitted_at', suggestions: 'submitted_at', activity_logs: 'logged_at', error_logs: 'logged_at' };
 const DEFAULTS = {
   site_settings: { server_address: '', server_port: null, platform: '', server_status: 'Online', discord_url: '', vote_url: '', ticket_url: '', hero_tagline: '', intro_text: '', maintenance_mode: false, maintenance_message: '', hero_image: '', gallery_image_one: '', gallery_image_two: '', banner_image: '' },
   join_steps: { title: '', instructions: '', image_url: '', enabled: false, sort_order: 0 },
   profiles: { bio: '', avatar_url: '', role: 'Member' },
+  staff_members: { avatar_url: '', position: 'Staff', profile_id: null, claim_hash: null, claim_expires: null },
   partners: { category: 'Community', description: '', logo_url: '', website_url: '' },
   posts: { body: '', image_url: '', published: false, published_at: null },
   content_pages: { title: '', content: '', published: false },
@@ -71,6 +72,9 @@ class Query {
   delete() { this.op = 'delete'; return this; }
   upsert(p, o = {}) { this.op = 'upsert'; this.payload = p; this.conflict = o.onConflict; return this; }
   eq(c, v) { if (UUID_COLS.has(c) && typeof v === 'string' && !UUID_RE.test(v)) this.bad = err('22P02', `invalid input syntax for type uuid: "${v}"`); this.filters.push((r) => r[c] === v); return this; }
+  neq(c, v) { this.filters.push((r) => r[c] !== v); return this; }
+  is(c, v) { this.filters.push((r) => (r[c] ?? null) === v); return this; }
+  not(c, op, v) { this.filters.push((r) => (op === 'is' ? (r[c] ?? null) !== v : true)); return this; }
   in(c, vs) { this.filters.push((r) => vs.includes(r[c])); return this; }
   order(c, o = {}) { this.orders.push({ c, asc: o.ascending !== false, nullsFirst: o.nullsFirst }); return this; }
   limit(n) { this.lim = n; return this; }
@@ -168,6 +172,14 @@ export function createClient() {
       return { data: h.n <= args.p_limit, error: null };
     },
     auth: {
+      admin: {
+        createUser: async ({ email, password }) => {
+          if (Object.values(state.users).some((u) => u.email === email)) return { data: null, error: { message: 'A user with this email address has already been registered', status: 422, code: 'email_exists' } };
+          if (password.length < 6) return { data: null, error: { message: 'Password should be at least 6 characters', status: 422, code: 'weak_password' } };
+          state.users[`created-${email}`] = { id: randomUUID(), email, email_confirmed_at: '2026-01-01T00:00:00Z', user_metadata: {}, app_metadata: { provider: 'email', providers: ['email'] } };
+          return { data: { user: state.users[`created-${email}`] }, error: null };
+        },
+      },
       getUser: async (token) => {
         const u = state.users[token];
         return u ? { data: { user: u }, error: null } : { data: { user: null }, error: { message: 'invalid JWT' } };

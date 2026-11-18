@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Home, Lock, RefreshCw, SearchX, ServerCrash, ShieldX, CloudOff, Wrench, type LucideIcon } from 'lucide-react';
 import { Button } from '@project/components/ui/button';
@@ -19,12 +18,12 @@ export default function ErrorPage({ code, message, onRetry, full }: { code: Code
   const c = CFG[code];
   const retry = onRetry ?? (() => window.location.reload());
   return (
-    <div className={`relative grid place-items-center overflow-hidden px-4 sky-glow ${full ? 'min-h-screen' : 'min-h-[70vh]'}`}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-lg text-center">
+    <div className={`relative grid place-items-center overflow-hidden px-4 ${full ? 'min-h-screen' : 'min-h-[70vh]'}`}>
+      <div className="max-w-lg text-center">
         <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl border border-border bg-card">
           <c.icon className="h-9 w-9 text-primary" />
         </div>
-        {code !== 'maintenance' && <p className="font-display text-7xl font-extrabold text-gradient">{code}</p>}
+        {code !== 'maintenance' && <p className="font-display text-7xl font-bold text-gradient">{code}</p>}
         <h1 className="mt-2 text-3xl font-bold">{c.title}</h1>
         <p className="mt-3 text-muted-foreground">{message || c.text}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -33,7 +32,7 @@ export default function ErrorPage({ code, message, onRetry, full }: { code: Code
           {code === '404' && nav && <Button size="lg" variant="outline" onClick={() => nav(-1)}><ArrowLeft className="mr-2 h-4 w-4" />Go back</Button>}
           {code !== 'maintenance' && <Button size="lg" variant={code === '404' || code === '403' ? 'default' : 'outline'} onClick={() => (window.location.href = '/')}><Home className="mr-2 h-4 w-4" />{code === '404' ? 'Go home' : 'Return home'}</Button>}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

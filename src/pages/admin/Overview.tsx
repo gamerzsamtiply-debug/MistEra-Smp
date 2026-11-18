@@ -1,5 +1,4 @@
 import { Users, Shield, Handshake, Images, Lightbulb, Activity } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { adminOverview } from '@/lib/api';
 import { Skeleton } from '@project/components/ui/skeleton';
 import { InlineError, EmptyState } from '../../components/States';
@@ -18,11 +17,11 @@ export default function Overview() {
     <div className="space-y-8">
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         {cards.map((k, i) => (
-          <motion.div key={k.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-2xl border border-border bg-card p-5">
+          <div key={k.label} className="rounded-2xl border border-border bg-card p-5">
             <k.icon className="h-5 w-5 text-primary" />
-            {loading ? <Skeleton className="mt-3 h-8 w-16" /> : <p className="mt-3 font-display text-3xl font-extrabold">{k.v ?? 0}</p>}
+            {loading ? <Skeleton className="mt-3 h-8 w-16" /> : <p className="mt-3 font-display text-3xl font-bold">{k.v ?? 0}</p>}
             <p className="text-sm text-muted-foreground">{k.label}{k.sub ? ` · ${k.sub}` : ''}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
       <div className="rounded-2xl border border-border bg-card p-5">

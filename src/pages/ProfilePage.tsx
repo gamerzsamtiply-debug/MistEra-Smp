@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Trash2, Images, ExternalLink } from 'lucide-react';
-import { updateMyProfile, myAlbum, deleteMyAlbum } from '@/lib/api';
+import { updateMyProfile, myAlbum, deleteMyAlbum, claimStaff } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
 import { Input } from '@project/components/ui/input';
 import { Textarea } from '@project/components/ui/textarea';
@@ -19,6 +19,25 @@ import { useLoad } from '../lib/useLoad';
 import { run } from '../lib/errors';
 import { fmtDate } from '../lib/format';
 import { MySuggestions } from './SuggestionsPage';
+
+function StaffLink() {
+  const { me, reloadMe } = useSite();
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!me) return null;
+  if (me.staffPosition) return <p className="rounded-xl border border-border bg-secondary/40 p-4 text-sm">Your account is linked to the staff team as <RoleBadge role={me.staffPosition} />.</p>;
+  const submit = async () => {
+    setBusy(true);
+    try { await run('Link staff profile', () => claimStaff({ code }), { success: 'Staff profile linked', failTitle: 'Could not link staff profile' }); setCode(''); reloadMe(); } catch { /* shown */ } finally { setBusy(false); }
+  };
+  return (
+    <div className="space-y-2 rounded-xl border border-border p-4">
+      <Label htmlFor="staff-code">Staff link code</Label>
+      <p className="text-xs text-muted-foreground">Part of the team? Enter the one-time code an admin gave you to connect your account to your staff profile.</p>
+      <div className="flex gap-2"><Input id="staff-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="XXXX-XXXX-XXXX-XXXX" autoComplete="off" className="font-mono" /><Button onClick={submit} disabled={busy || code.replace(/[^a-zA-Z0-9]/g, '').length < 16}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Link</Button></div>
+    </div>
+  );
+}
 
 function EditProfile() {
   const { me, reloadMe } = useSite();
@@ -43,6 +62,7 @@ function EditProfile() {
         <div className="space-y-1.5"><Label htmlFor="un">Username</Label><Input id="un" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} aria-invalid={!!errs.username} />{errs.username && <p className="text-sm text-destructive">{errs.username}</p>}</div>
         <div className="space-y-1.5"><Label htmlFor="bio">Bio</Label><Textarea id="bio" rows={4} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} placeholder="Tell the community about yourself" /><p className="text-xs text-muted-foreground">{f.bio.length}/300</p>{errs.bio && <p className="text-sm text-destructive">{errs.bio}</p>}</div>
         <Button onClick={save} disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save changes</Button>
+        <StaffLink />
       </div>
     </div>
   );
@@ -59,7 +79,7 @@ function MyImages() {
       {loading ? <GridSkeleton count={3} /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.items.length ? <EmptyState icon={Images} title="No submissions yet" message="Share a screenshot from the server." /> : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{data.items.map((a) => (
           <div key={a.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-            <img src={a.imageUrl} alt={a.caption} className="aspect-video w-full object-cover" />
+            <img src={a.imageUrl} alt={a.caption || 'Your submitted MistEra SMP screenshot'} className="aspect-video w-full object-cover" />
             <div className="flex items-center justify-between gap-2 p-4">
               <div className="min-w-0"><Badge variant={a.status === 'Approved' ? 'default' : a.status === 'Declined' ? 'destructive' : 'secondary'}>{a.status}</Badge><p className="mt-1 truncate text-xs text-muted-foreground">{a.caption || fmtDate(a.submittedAt)}</p></div>
               <ConfirmDelete title="Delete this image?" onConfirm={() => del(a.id)}><Button size="icon" variant="ghost" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>

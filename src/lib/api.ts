@@ -92,6 +92,24 @@ export interface AdminSavePartnerInputType {
   websiteUrl: string;
 }
 
+export const STAFF_POSITIONS = ['Owner', 'Admin', 'Moderator', 'Developer', 'Builder', 'Helper', 'Staff'] as const;
+export type StaffPosition = (typeof STAFF_POSITIONS)[number];
+
+export interface AdminSaveStaffInputType {
+  id?: string;
+  name: string;
+  avatarUrl: string;
+  position: StaffPosition;
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  position: StaffPosition;
+  profileId: string | null;
+}
+
 export interface CreateUploadUrlOutputType {
   bucket: string;
   path: string;
@@ -100,6 +118,13 @@ export interface CreateUploadUrlOutputType {
 }
 
 // ───────────── Endpoints (1:1 with server/api/*.ts) ─────────────
+export const register = (input: { email: string; password: string }) => call<{ ok: true }>('register', input);
+export const adminListStaff = (input?: Any) => call<Any>('adminListStaff', input);
+export const adminSaveStaff = (input?: AdminSaveStaffInputType) => call<Any>('adminSaveStaff', input);
+export const adminDeleteStaff = (input?: Any) => call<Any>('adminDeleteStaff', input);
+export const adminLinkStaff = (input?: { id: string; username: string | null }) => call<Any>('adminLinkStaff', input);
+export const adminStaffClaimCode = (input?: { id: string }) => call<{ code: string; expiresAt: string }>('adminStaffClaimCode', input);
+export const claimStaff = (input?: { code: string }) => call<{ ok: true; name: string }>('claimStaff', input);
 export const adminDeletePartner = (input?: Any) => call<Any>('adminDeletePartner', input);
 export const adminDeletePost = (input?: Any) => call<Any>('adminDeletePost', input);
 export const adminGetSettings = (input?: Any) => call<Any>('adminGetSettings', input);

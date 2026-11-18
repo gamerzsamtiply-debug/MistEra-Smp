@@ -9,7 +9,7 @@ import { EmptyState, GridSkeleton, InlineError } from '../components/States';
 import { useLoad } from '../lib/useLoad';
 
 export default function PostsPage({ kind }: { kind: 'Announcement' | 'Update' }) {
-  const { data, error, loading, reload } = useLoad(`Load ${kind}s`, () => listPosts({ kind }), [kind]);
+  const { data, error, loading, reload } = useLoad(`Load ${kind}s`, () => listPosts({ kind }), [kind], { cache: true });
   const [open, setOpen] = useState<Post | null>(null);
   const isA = kind === 'Announcement';
   return (

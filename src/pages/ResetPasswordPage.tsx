@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@project/components/ui/button';
-import { Input } from '@project/components/ui/input';
+import PasswordInput from '../components/PasswordInput';
 import { Label } from '@project/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -33,8 +32,8 @@ export default function ResetPasswordPage() {
 
   if (isLoading) return <Spinner />;
   return (
-    <div className="relative grid min-h-[70vh] place-items-center overflow-hidden px-4 py-12 sky-glow">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md rounded-2xl border border-border bg-card p-8">
+    <div className="grid min-h-[70vh] place-items-center px-4 py-12">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8">
         <div className="mb-6 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-border bg-secondary"><KeyRound className="h-6 w-6 text-primary" /></div>
           <h1 className="mt-4 text-3xl font-bold">Choose a new password</h1>
@@ -46,13 +45,13 @@ export default function ResetPasswordPage() {
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4" noValidate>
-            <div className="space-y-1.5"><Label htmlFor="rp-new">New password</Label><Input id="rp-new" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label htmlFor="rp-confirm">Confirm password</Label><Input id="rp-confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="rp-new">New password</Label><PasswordInput id="rp-new" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+            <div className="space-y-1.5"><Label htmlFor="rp-confirm">Confirm password</Label><PasswordInput id="rp-confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></div>
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update password</Button>
           </form>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

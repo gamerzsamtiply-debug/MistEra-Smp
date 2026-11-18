@@ -27,9 +27,9 @@ original-zite-export/    original endpoint sources + schema, for reference only 
    0002 adds the rate-limit table/function (used by the public error log and by uploads), 30-day error-log retention and a few safety constraints.
    **Without 0002, error reports are silently not stored and uploads/submissions are not rate limited** (the API logs `check_rate_limit failed` in Vercel logs).
 3. **Project Settings → API**: copy the Project URL, the `anon` key and the `service_role` key.
-4. **Authentication → Providers → Email**: keep "Confirm email" ON (the Owner role is only granted to a *verified* email).
+4. **Authentication → Providers → Email**: enabled. "Confirm email" can be ON or OFF: sign-up goes through the server (`/api/register`), which creates accounts that need no confirmation either way.
 5. **Authentication → URL Configuration**: set Site URL to your Vercel domain and add `https://YOUR-DOMAIN/**` and `http://localhost:8080/**` to Redirect URLs.
-6. Optional Google login: enable the Google provider in Supabase, then set `VITE_ENABLE_GOOGLE_AUTH=true`.
+6. **Google login** (the buttons are always shown): Supabase → Authentication → Providers → Google → enable it with a Google OAuth client ID/secret, and add `https://YOUR-DOMAIN/**` (and `http://localhost:5173/**`) under Authentication → URL Configuration → Redirect URLs. See `CHANGES.md`.
 
 ## 2. Environment variables
 Copy `.env.example` to `.env.local` and fill it in (same names in Vercel → Settings → Environment Variables):
@@ -59,7 +59,7 @@ git push -u origin main
 ## 5. Deploy on Vercel
 1. vercel.com → Add New → Project → import the repo (framework auto-detects Vite; `vercel.json` is included).
 2. Add the environment variables above, Deploy.
-3. Sign up on your site with the `OWNER_EMAIL` address and confirm the email → you become **Owner**, can open `/admin`, and promote Admins/staff in the Users tab.
+3. Sign in **with Google** using the `OWNER_EMAIL` address (or keep your existing account) → you get full admin access and are shown as **Admin**. Then set `OWNER_USER_ID` (see `.env.example`).
 4. In Admin → Settings set server IP/port/status, links and images; Admin → Steps for the join guide; Pages for Information/Terms.
 
 ## Behaviour notes
@@ -70,7 +70,7 @@ git push -u origin main
 ## Security notes
 - **Rate limiting** is stored in Postgres (`check_rate_limit`, migration 0002), because serverless instances share no memory. `logClientError`: 10 reports / 10 min per IP and 300 / hour overall; uploads: 30 / hour per user; album and suggestion submissions: 20–30 / hour per user. IPs are HMAC-hashed before storage.
 - **Markdown** is rendered through a two-pass allow-list sanitiser (`src/project-components/markdown/sanitize.ts`): only a bare `<mark>` raw tag survives; scripts, event handlers, styles and `javascript:` URLs are removed.
-- **Owner role**: needs the verified `OWNER_EMAIL` (and `OWNER_USER_ID` if set). Keep *Confirm email* ON in Supabase.
+- **Owner account** (`OWNER_EMAIL`): full admin access, displayed publicly as **Admin**. Because sign-up needs no e-mail confirmation, it requires `OWNER_USER_ID`, a Google-verified login, or an existing owner account. "Owner" is a separate display-only staff position.
 - **Content-Security-Policy** is set in `vercel.json`. If you add a custom Supabase domain, another script/CDN or an embed, extend `connect-src` / `script-src` / `img-src` there.
 - Maintenance mode is a UI gate only: public content endpoints keep answering (same as the original).
 - Members can only attach images uploaded through the site (own `uploads` bucket); admins may still enter any http(s) image link.
@@ -89,3 +89,15 @@ Logos/hero images are still hot-linked from Zite's CDN. With internet access run
 ## Verification status
 See `CHANGELOG.md` for exactly what was and was not verified in the audit environment (no internet: no `npm install`, no Vite build, no real Supabase/Vercel).
 Run `npm install && npm run ci` once on your machine / in GitHub Actions before the first deploy.
+
+## SEO
+
+All SEO copy and rules live in **`src/lib/seo-config.ts`** (titles, descriptions, canonical URLs, social image, JSON-LD, sitemap).
+
+- `npm run build` runs `seo/vite-plugin-seo.ts`, which writes a static HTML file per public page (`dist/staff.html`, …) with that page's
+  `<title>`, description, canonical, Open Graph/Twitter tags (homepage also gets Organization + WebSite JSON-LD), plus `dist/sitemap.xml`
+  and a generic `noindex` `dist/app-shell.html` that `vercel.json` serves for every other URL. `src/lib/seo-dom.ts` keeps the tags right after client-side navigation.
+- **Adding a public page:** add the `<Route>` in `App.tsx` *and* an entry in `ROUTES` (it then appears in the sitemap and gets its own tags). `npm run test:seo` fails if a route is in neither `ROUTES` nor the private list.
+- Account/admin/error pages and `/u/:id` profiles are `noindex` (meta tag + `X-Robots-Tag` header in `vercel.json`). `/api/` and `/admin` are also disallowed in `public/robots.txt`.
+- Social preview image: replace `OG_IMAGE` in `seo-config.ts` with a 1200×630 branded image (e.g. `/og-image.png` in `public/`).
+- Run `npm run assets:localize -- https://misterasmp.fun` once (needs internet) to self-host the images that are still hot-linked from `images.fillout.com`; it is the biggest remaining Core Web Vitals win.

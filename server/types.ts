@@ -45,6 +45,19 @@ export interface ProfileRow {
   joined_at: string | null;
 }
 
+export type StaffPosition = 'Owner' | 'Admin' | 'Moderator' | 'Developer' | 'Builder' | 'Helper' | 'Staff';
+
+export interface StaffRow {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  position: StaffPosition | null;
+  profile_id: string | null;
+  claim_hash?: string | null;
+  claim_expires?: string | null;
+  created_at?: string | null;
+}
+
 export interface PartnerRow {
   id: string;
   name: string | null;

@@ -8,7 +8,7 @@ import { useLoad } from '../lib/useLoad';
 import { fmtDate } from '../lib/format';
 
 export default function ContentPage({ slug }: { slug: 'information' | 'terms' }) {
-  const { data, error, loading, reload } = useLoad(`Load ${slug}`, () => getPage({ slug }), [slug]);
+  const { data, error, loading, reload } = useLoad(`Load ${slug}`, () => getPage({ slug }), [slug], { cache: true });
   const fallback = slug === 'terms' ? 'Terms of Service' : 'Information';
   return (
     <>
@@ -16,7 +16,7 @@ export default function ContentPage({ slug }: { slug: 'information' | 'terms' })
       <div className="container mx-auto max-w-3xl px-4 py-12 space-y-8">
         {slug === 'information' && <WhitelistNotice />}
         {loading ? <Spinner /> : error ? (error.kind === 'notFound' ? <EmptyState icon={FileText} title="Not published yet" message="This page hasn't been published yet. Please check back later." /> : <InlineError error={error} onRetry={reload} />) : (
-          <article className="prose-site"><Markdown>{data?.content ?? ''}</Markdown></article>
+          <article className="prose-site"><Markdown demoteH1>{data?.content ?? ''}</Markdown></article>
         )}
       </div>
     </>

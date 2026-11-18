@@ -4,11 +4,8 @@ import './index.css';
 import App from './App';
 import { ErrorBoundary } from 'react-error-boundary';
 import { HammerIcon } from 'lucide-react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './lib/auth';
 import { isSupabaseConfigured } from './lib/supabase';
-
-const queryClient = new QueryClient();
 
 function RuntimeErrorFallback(props: { error: Error }) {
   return (
@@ -52,11 +49,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {isSupabaseConfigured ? (
       <ErrorBoundary fallbackRender={(props) => <RuntimeErrorFallback error={props.error} />}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </QueryClientProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ErrorBoundary>
     ) : (
       <MissingConfig />

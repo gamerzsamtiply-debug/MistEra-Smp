@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, LifeBuoy, LogOut, User, ShieldCheck, LogIn } from 'lucide-react';
 import { useAuth, loginWithRedirect, logout } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -28,19 +27,19 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
-  useEffect(() => { const f = () => setScrolled(window.scrollY > 10); f(); window.addEventListener('scroll', f); return () => window.removeEventListener('scroll', f); }, []);
+  useEffect(() => { const f = () => setScrolled(window.scrollY > 10); f(); window.addEventListener('scroll', f, { passive: true }); return () => window.removeEventListener('scroll', f); }, []);
 
   return (
-    <header className={cn('sticky top-0 z-50 transition-all', scrolled ? 'glass border-x-0 border-t-0 shadow-lg shadow-black/20' : 'bg-transparent')}>
+    <header className={cn('sticky top-0 z-50 border-b bg-background', scrolled ? 'border-border' : 'border-transparent')}>
       <nav className="container mx-auto flex h-16 items-center gap-4 px-4">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <motion.img whileHover={{ rotate: -6, scale: 1.08 }} src={LOGO_MARK} alt="MistEra SMP" className="h-10 w-10 object-contain" />
-          <span className="font-display text-lg font-black tracking-tight" style={{ fontStretch: '115%' }}>MISTERA <span className="text-accent">SMP</span></span>
+          <img src={LOGO_MARK} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+          <span className="font-display text-lg font-bold tracking-tight">MISTERA <span className="text-accent">SMP</span></span>
         </Link>
         <div className="mx-auto hidden xl:flex items-center gap-1">
           {LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} end className={({ isActive }) => cn('relative rounded-lg px-3 py-2 text-sm font-medium transition-colors', isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground')}>
-              {({ isActive }) => <>{l.label}{isActive && <motion.span layoutId="nav-pill" className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-primary" />}</>}
+              {({ isActive }) => <>{l.label}{isActive && <span className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-primary" />}</>}
             </NavLink>
           ))}
           <button onClick={() => openHelp(settings?.ticketUrl)} className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"><LifeBuoy className="h-4 w-4" />Help</button>
@@ -66,14 +65,14 @@ export default function Navbar() {
           <Button size="icon" variant="ghost" className="xl:hidden" onClick={() => setOpen((o) => !o)} aria-label="Toggle menu">{open ? <X /> : <Menu />}</Button>
         </div>
       </nav>
-      <AnimatePresence>
+      <>
         {open && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="xl:hidden overflow-hidden glass border-x-0">
+          <div className="xl:hidden overflow-hidden border-t border-border bg-background">
             <div className="container mx-auto grid gap-1 px-4 py-4">
               {LINKS.map((l, i) => (
-                <motion.div key={l.to} initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.03 }}>
+                <div key={l.to}>
                   <NavLink to={l.to} end className={({ isActive }) => cn('block rounded-lg px-3 py-2.5 font-medium', isActive ? 'bg-secondary text-foreground' : 'text-muted-foreground')}>{l.label}</NavLink>
-                </motion.div>
+                </div>
               ))}
               <button onClick={() => openHelp(settings?.ticketUrl)} className="rounded-lg px-3 py-2.5 text-left font-medium text-muted-foreground">Help</button>
               {user ? (
@@ -83,9 +82,9 @@ export default function Navbar() {
                 </>
               ) : <Button className="mt-2" onClick={() => loginWithRedirect()}>Login / Create Account</Button>}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </header>
   );
 }

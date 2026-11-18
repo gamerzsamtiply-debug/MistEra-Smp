@@ -1,16 +1,31 @@
-import { db, must, isUniqueViolation, isUuid, selectAll } from './db.js';
-import { ownerEmail, ownerUserId, supabaseUrl } from './env.js';
+import { createHmac, randomBytes } from 'node:crypto';
+import { db, must, mustOr, isUniqueViolation, isUuid, selectAll } from './db.js';
+import { env, ownerEmail, ownerUserId, supabaseUrl } from './env.js';
 import { ApiError, fail } from './errors.js';
 import type { AuthUser } from './auth.js';
-import type { ProfileRow, PublicUser, SettingsRow, Role } from './types.js';
+import type { ProfileRow, PublicUser, SettingsRow, Role, StaffRow, StaffPosition } from './types.js';
 
 export const STAFF_ROLES: Role[] = ['Owner', 'Admin', 'Moderator', 'Staff'];
+export const STAFF_POSITIONS: StaffPosition[] = ['Owner', 'Admin', 'Moderator', 'Developer', 'Builder', 'Helper', 'Staff'];
 
-/** The Owner role is only ever given to the configured owner email, and only once it is verified. */
-export function isOwnerUser(u: AuthUser): boolean {
-  if (!u.emailVerified || u.email.trim().toLowerCase() !== ownerEmail()) return false;
-  const pinned = ownerUserId(); // optional extra lock: the exact auth user id
-  return !pinned || u.id.toLowerCase() === pinned;
+/**
+ * The account behind OWNER_EMAIL keeps the internal "Owner" access role (full control), but it is always
+ * presented to the public as "Admin". "Owner" is a separate, display-only staff position that admins can give out.
+ */
+export const displayRole = (role: Role | null | undefined): Role => (role === 'Owner' ? 'Admin' : role ?? 'Member');
+
+/**
+ * Only the configured owner account can hold the internal Owner role.
+ * Because sign-up needs no e-mail confirmation, an e-mail address alone proves nothing, so one of these must hold:
+ *  - OWNER_USER_ID is set and matches this exact account (strongest, recommended), or
+ *  - the account is linked to Google (Google has verified the address), or
+ *  - the account already held the Owner role before (existing deployments keep working).
+ */
+export function isOwnerUser(u: AuthUser, existingRole?: Role | null): boolean {
+  if (u.email.trim().toLowerCase() !== ownerEmail()) return false;
+  const pinned = ownerUserId();
+  if (pinned) return u.id.toLowerCase() === pinned;
+  return u.providers.includes('google') || existingRole === 'Owner';
 }
 
 async function findProfileByUser(userId: string): Promise<ProfileRow | null> {
@@ -56,8 +71,8 @@ async function createProfile(u: AuthUser, owner: boolean): Promise<ProfileRow> {
  * verified owner email, and removed from anyone else — it can never be escalated to.
  */
 export async function ensureProfile(u: AuthUser): Promise<ProfileRow> {
-  const owner = isOwnerUser(u);
   let p = await findProfileByUser(u.id);
+  const owner = isOwnerUser(u, p?.role);
   if (!p) return createProfile(u, owner);
   if (owner && p.role !== 'Owner') {
     must(await db().from('profiles').update({ role: 'Owner' }).eq('id', p.id), 'profiles.promoteOwner');
@@ -88,7 +103,7 @@ export async function logActivity(u: AuthUser, action: string, resource: string,
   }
 }
 
-export const toPublicUser = (p: ProfileRow): PublicUser => ({ id: p.id, username: p.username ?? 'player', avatarUrl: p.avatar_url ?? '', role: p.role ?? 'Member' });
+export const toPublicUser = (p: ProfileRow): PublicUser => ({ id: p.id, username: p.username ?? 'player', avatarUrl: p.avatar_url ?? '', role: displayRole(p.role) });
 
 /** Maps auth user id → public profile info for the given users (or every profile when no ids are given). */
 export async function profileMap(userIds?: (string | null)[]): Promise<Map<string, PublicUser>> {
@@ -192,4 +207,80 @@ export async function countRows(table: string, apply?: (q: any) => any): Promise
     throw new ApiError('INTERNAL', 'Database error');
   }
   return (r.count as number | null) ?? 0;
+}
+
+// ───────────── Staff (public team list) ─────────────
+
+export interface StaffOut {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  position: StaffPosition;
+  /** Linked registered account (public profile id), if the staff member linked one. */
+  profileId: string | null;
+  username: string | null;
+  /** True for the automatic entry of the OWNER_EMAIL account (shown as Admin, not editable). */
+  system: boolean;
+}
+
+const positionRank = (p: string) => {
+  const i = STAFF_POSITIONS.indexOf(p as StaffPosition);
+  return i < 0 ? 99 : i;
+};
+
+/**
+ * The public team: every staff entry added by admins (no account needed) plus the OWNER_EMAIL account,
+ * which always appears as "Admin". Missing table (migration not applied) degrades to just the owner entry.
+ */
+export async function buildStaffList(): Promise<StaffOut[]> {
+  const [sr, pr] = await Promise.all([
+    db().from('staff_members').select('id,name,avatar_url,position,profile_id,created_at').order('created_at', { ascending: true }).limit(500),
+    db().from('profiles').select('*').eq('role', 'Owner').limit(10),
+  ]);
+  const rows = mustOr(sr, 'staff_members.list', [] as StaffRow[]) as StaffRow[];
+  const owners = mustOr(pr, 'profiles.owners', [] as ProfileRow[]) as ProfileRow[];
+
+  const linkedIds = [...new Set(rows.map((r) => r.profile_id).filter((x): x is string => !!x))];
+  const linked = new Map<string, ProfileRow>();
+  for (let i = 0; i < linkedIds.length; i += 200) {
+    const r = await db().from('profiles').select('*').in('id', linkedIds.slice(i, i + 200));
+    for (const p of mustOr(r, 'profiles.linkedStaff', [] as ProfileRow[]) as ProfileRow[]) linked.set(p.id, p);
+  }
+
+  const out: StaffOut[] = rows.map((r) => {
+    const p = r.profile_id ? linked.get(r.profile_id) : undefined;
+    return {
+      id: r.id,
+      name: r.name ?? '',
+      avatarUrl: r.avatar_url || p?.avatar_url || '',
+      // The owner account is always presented as Admin, whatever position it was linked to.
+      position: p?.role === 'Owner' ? 'Admin' : ((r.position ?? 'Staff') as StaffPosition),
+      profileId: p?.id ?? null,
+      username: p?.username ?? null,
+      system: false,
+    };
+  });
+  for (const o of owners) {
+    if (out.some((s) => s.profileId === o.id)) continue;
+    out.push({ id: `owner-${o.id}`, name: o.username ?? 'Admin', avatarUrl: o.avatar_url ?? '', position: 'Admin', profileId: o.id, username: o.username ?? null, system: true });
+  }
+  return out.sort((a, b) => positionRank(a.position) - positionRank(b.position));
+}
+
+// ───────────── One-time staff link codes ─────────────
+const B32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I
+
+/** 16 random characters (80 bits), shown as XXXX-XXXX-XXXX-XXXX. */
+export function newClaimCode(): string {
+  const bytes = randomBytes(16);
+  let raw = '';
+  for (let i = 0; i < 16; i++) raw += B32[bytes[i] % B32.length];
+  return raw.match(/.{4}/g)!.join('-');
+}
+
+export const normalizeClaimCode = (v: string): string => v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+export function hashClaimCode(code: string): string {
+  const secret = env('SUPABASE_SERVICE_ROLE_KEY') ?? 'mistera';
+  return createHmac('sha256', secret).update(`staff-claim|${normalizeClaimCode(code)}`).digest('hex');
 }

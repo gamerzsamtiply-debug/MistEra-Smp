@@ -1,9 +1,9 @@
-node_modules/
-dist/
-.vercel/
+node_modules
+dist
+.vercel
 .env
 .env.local
-.env.Local
 .env.*.local
 *.tsbuildinfo
+.tsbuildinfo
 .DS_Store

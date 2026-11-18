@@ -34,3 +34,14 @@
 1. `npm install` (creates the missing **package-lock.json** — commit it), then `npm run ci`. Frontend type-check and `npm run build` were NOT run here.
 2. SQL migrations were not executed on a real Postgres/Supabase.
 3. Real Supabase Auth/Storage, Vercel deployment and the CSP in a real browser (check the console once after deploying).
+
+## SEO & performance pass
+- Per-page title/description/canonical/Open Graph/Twitter tags (static HTML at build + runtime updates); Organization + WebSite JSON-LD on the homepage.
+- `sitemap.xml` (generated), `robots.txt`, `X-Robots-Tag: noindex` for account/admin/error/profile pages, `app-shell.html` fallback instead of serving the homepage HTML for unknown URLs.
+- One `<h1>` per page (CMS `# Heading` is demoted on Information/Terms), no skipped heading levels on Partners/Announcements/Updates, footer column titles no longer headings.
+- Descriptive alt text for logos, album screenshots, partner logos and how-to-join step images; decorative images keep `alt=""`.
+- Hero image/logo marked high priority; `decoding="async"` on lazy images; long-lived cache headers for hashed assets.
+
+## Fonts
+- Body text: Minecraft; headlines (h1–h4, `.font-display`, navbar brand): Minecrafter. Self-hosted in `public/fonts`; Google Fonts removed (CSP tightened). Colours unchanged.
+- Minecrafter's page says "Freeware, Non-Commercial" — check its licence if the server earns money.
