@@ -47,7 +47,7 @@ function EditProfile() {
   useEffect(() => { if (me) setF({ username: me.profile.username, bio: me.profile.bio, avatarUrl: me.profile.avatarUrl }); }, [me]);
   const save = async () => {
     const e: Record<string, string> = {};
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(f.username.trim())) e.username = 'Use 3–20 letters, numbers or underscores.';
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(f.username.trim())) e.username = 'Use 3-20 letters, numbers or underscores.';
     if (f.bio.length > 300) e.bio = 'Bio must be 300 characters or fewer.';
     setErrs(e); if (Object.keys(e).length) return;
     setBusy(true);

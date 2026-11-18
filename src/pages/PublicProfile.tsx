@@ -24,7 +24,7 @@ export default function PublicProfile() {
           <div>
             <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start"><h1 className="text-4xl font-bold">@{p.username}</h1><RoleBadge role={p.role} /></div>
             {p.joinedAt && <p className="mt-1 text-sm text-muted-foreground">Member since {fmtDate(p.joinedAt)}</p>}
-            <p className="mt-3 max-w-xl whitespace-pre-line text-muted-foreground">{p.bio || 'This player hasn’t written a bio yet.'}</p>
+            <p className="mt-3 max-w-xl whitespace-pre-line text-muted-foreground">{p.bio || 'This player hasn't written a bio yet.'}</p>
           </div>
         </div>
       </section>

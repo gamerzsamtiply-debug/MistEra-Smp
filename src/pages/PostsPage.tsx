@@ -17,7 +17,7 @@ export default function PostsPage({ kind }: { kind: 'Announcement' | 'Update' })
       <PageHeader eyebrow={isA ? 'News' : 'Changelog'} title={isA ? 'Announcements' : 'Updates'} subtitle={isA ? 'Official news and events from the MistEra SMP team.' : 'Server changes, new features and patch notes.'} />
       <div className="container mx-auto px-4 py-12">
         {loading ? <GridSkeleton /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.posts.length ? (
-          <EmptyState icon={isA ? Megaphone : Sparkles} title={isA ? 'No announcements yet' : 'No updates yet'} message="Check back soon — new posts will appear here." />
+          <EmptyState icon={isA ? Megaphone : Sparkles} title={isA ? 'No announcements yet' : 'No updates yet'} message="Check back soon - new posts will appear here." />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {data.posts.map((p, i) => <Reveal key={p.id} delay={(i % 3) * 0.06}><PostCard post={p} onOpen={() => setOpen(p)} /></Reveal>)}

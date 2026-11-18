@@ -24,7 +24,7 @@ export function MySuggestions() {
     if (f.description.trim().length < 10) e.description = 'Please describe your idea in at least 10 characters.';
     setErrs(e); if (Object.keys(e).length) return;
     setBusy(true);
-    try { await run('Suggestion submission', () => submitSuggestion(f), { success: 'Suggestion submitted — thank you!', failTitle: 'Suggestion submission failed' }); setF({ title: '', description: '' }); reload(); } catch { /* preserved */ } finally { setBusy(false); }
+    try { await run('Suggestion submission', () => submitSuggestion(f), { success: 'Suggestion submitted - thank you!', failTitle: 'Suggestion submission failed' }); setF({ title: '', description: '' }); reload(); } catch { /* preserved */ } finally { setBusy(false); }
   };
   const del = (id: string) => run('Delete suggestion', () => deleteMySuggestion({ id }), { success: 'Suggestion deleted' }).then(() => setData((d) => d && { items: d.items.filter((i) => i.id !== id) })).catch(() => undefined);
   return (

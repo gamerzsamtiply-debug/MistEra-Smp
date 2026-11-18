@@ -1,3 +1,11 @@
+# Latest: error page, IP/port, fonts, themes
+
+- **No more auto-retry.** `ErrorBoundary` shows the error page immediately (no hidden re-mounting, no spinner flicker); `lazyRetry` is gone (plain `React.lazy`), the background pre-download of every page is gone, and read requests no longer retry on their own. The real error is logged to the console and to Admin > Logs (operation "Render").
+- Staff, Partners, Announcements/Updates, Album and Login are now part of the main bundle (they were effectively already, via Home), so they cannot fail to download. Only Information/Terms, Profile, Suggestions, Public profile, Reset password and Admin are lazy; their loader only shows after 300 ms.
+- **IP and port:** new `CopyField` (label on top, value below, copy button). Hero and "Server details" show Server IP and Port as two separate tap-to-copy fields.
+- **Fonts:** removed characters the Minecraft fonts do not have (arrows, ellipsis, middle dot, dashes, curly quote, copyright) from visible text; `font-mono` now uses the Minecraft font; negative/extra letter-spacing removed; text sizes moved to multiples of 8px (sm 16, 3xl 32, 4xl 40, 6xl 64).
+- **Themes:** Dark (default) and Light (Apple-style soft white, #f5f5f7 page with white cards). Sun/moon button in the navbar, choice saved in `localStorage` (`mistera-theme`), applied before first paint by `public/theme-init.js`. Text/primary colours are darker in light mode for contrast; logos sit on a dark tile in light mode (`.logo-plate`).
+
 # Changelog — production-readiness audit
 
 ## Fixed

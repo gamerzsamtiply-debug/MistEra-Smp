@@ -25,7 +25,7 @@ export default function ServerCard({ s }: { s: Settings }) {
       <div className="space-y-2">
         {rows.map(([label, v]) => (
           <button key={label} disabled={v === 'Not set yet'} onClick={() => copy(label, v)} className="flex w-full items-center justify-between rounded-xl bg-secondary/70 px-4 py-3 text-left transition hover:bg-secondary disabled:cursor-default">
-            <span><span className="block text-[11px] uppercase tracking-wider text-muted-foreground">{label}</span><span className="font-mono text-sm">{v}</span></span>
+            <span><span className="block text-xs uppercase text-muted-foreground">{label}</span><span className="font-mono text-sm">{v}</span></span>
             {v !== 'Not set yet' && (copied === label ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4 text-muted-foreground" />)}
           </button>
         ))}

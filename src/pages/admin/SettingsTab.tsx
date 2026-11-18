@@ -29,7 +29,7 @@ export default function SettingsTab() {
   const save = async () => {
     const e: Record<string, string> = {};
     if (!f.serverAddress.trim() || /\s/.test(f.serverAddress.trim())) e.serverAddress = 'Enter a server address without spaces.';
-    if (!Number.isInteger(f.serverPort) || f.serverPort < 1 || f.serverPort > 65535) e.serverPort = 'Port must be 1–65535.';
+    if (!Number.isInteger(f.serverPort) || f.serverPort < 1 || f.serverPort > 65535) e.serverPort = 'Port must be 1-65535.';
     (['discordUrl', 'voteUrl', 'ticketUrl'] as const).forEach((k) => { if (!urlOk(f[k])) e[k] = 'Must start with http:// or https://'; });
     setErrs(e); if (Object.keys(e).length) return;
     setBusy(true);
@@ -49,9 +49,9 @@ export default function SettingsTab() {
       </section>
       <section className={sec}><h3 className="text-lg font-bold">Links & Help</h3>
         <div className="grid gap-4 md:grid-cols-3">
-          <Field label="Discord invitation URL" error={errs.discordUrl}><Input value={f.discordUrl} onChange={(e) => set('discordUrl', e.target.value)} placeholder="https://discord.gg/…" /></Field>
-          <Field label="Voting URL" error={errs.voteUrl}><Input value={f.voteUrl} onChange={(e) => set('voteUrl', e.target.value)} placeholder="https://…" /></Field>
-          <Field label="Discord Ticket URL (Help)" error={errs.ticketUrl}><Input value={f.ticketUrl} onChange={(e) => set('ticketUrl', e.target.value)} placeholder="https://discord.com/channels/…" /></Field>
+          <Field label="Discord invitation URL" error={errs.discordUrl}><Input value={f.discordUrl} onChange={(e) => set('discordUrl', e.target.value)} placeholder="https://discord.gg/..." /></Field>
+          <Field label="Voting URL" error={errs.voteUrl}><Input value={f.voteUrl} onChange={(e) => set('voteUrl', e.target.value)} placeholder="https://..." /></Field>
+          <Field label="Discord Ticket URL (Help)" error={errs.ticketUrl}><Input value={f.ticketUrl} onChange={(e) => set('ticketUrl', e.target.value)} placeholder="https://discord.com/channels/..." /></Field>
         </div>
       </section>
       <section className={sec}><h3 className="text-lg font-bold">Homepage content</h3>
@@ -60,7 +60,7 @@ export default function SettingsTab() {
       </section>
       <section className={sec}><div><h3 className="text-lg font-bold">Homepage images</h3><p className="text-sm text-muted-foreground">Upload your own MistEra screenshots. Leave empty to use the default image.</p></div>
         <div className="grid gap-4 md:grid-cols-2">
-          {([['heroImage', 'Hero background'], ['galleryImageOne', 'Gallery — large image'], ['galleryImageTwo', 'Gallery — small image'], ['bannerImage', 'Join banner background']] as const).map(([k, l]) => (
+          {([['heroImage', 'Hero background'], ['galleryImageOne', 'Gallery - large image'], ['galleryImageTwo', 'Gallery - small image'], ['bannerImage', 'Join banner background']] as const).map(([k, l]) => (
             <Field key={k} label={l}><ImageUpload value={f[k] ?? ''} onChange={(u) => set(k, u)} label={`Upload ${l.toLowerCase()}`} /></Field>
           ))}
         </div>

@@ -96,7 +96,7 @@ export default function StaffTab() {
                   <p className="text-sm font-medium">Or let them link it themselves</p>
                   <p className="text-xs text-muted-foreground">Create a one-time code and send it to them privately. They enter it on their Profile page. It expires in 48 hours and works once.</p>
                   {code ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-3"><code className="flex-1 font-mono text-base tracking-wider">{code.code}</code><Button size="icon" variant="ghost" aria-label="Copy code" onClick={() => navigator.clipboard?.writeText(code.code).then(() => toast.success('Code copied'))}><Copy className="h-4 w-4" /></Button></div>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-3"><code className="flex-1 font-mono text-base ">{code.code}</code><Button size="icon" variant="ghost" aria-label="Copy code" onClick={() => navigator.clipboard?.writeText(code.code).then(() => toast.success('Code copied'))}><Copy className="h-4 w-4" /></Button></div>
                   ) : <Button variant="outline" onClick={makeCode} disabled={busy}><KeyRound className="mr-2 h-4 w-4" />Create link code</Button>}
                   {code && <p className="text-xs text-muted-foreground">This code is shown only once. Creating another replaces it.</p>}
                 </div>

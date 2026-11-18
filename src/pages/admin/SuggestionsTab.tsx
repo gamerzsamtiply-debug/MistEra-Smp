@@ -28,7 +28,7 @@ export default function SuggestionsTab() {
       {loading ? <Spinner /> : error ? <InlineError error={error} onRetry={reload} /> : !list.length ? <EmptyState icon={Lightbulb} title="No suggestions available" message="Player suggestions will appear here." /> : list.map((s) => (
         <div key={s.id} className="rounded-2xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h4 className="font-semibold">{s.title}</h4><div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground"><UserChip user={s.author} /> · {fmtDate(s.submittedAt)}</div></div>
+            <div><h4 className="font-semibold">{s.title}</h4><div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground"><UserChip user={s.author} /> - {fmtDate(s.submittedAt)}</div></div>
             <div className="flex items-center gap-2">
               <Select value={s.status} onValueChange={(v) => act(s.id, v)}><SelectTrigger className="w-40"><SelectValue /></SelectTrigger><SelectContent>{STATUSES.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent></Select>
               <ConfirmDelete title="Delete this suggestion?" onConfirm={() => act(s.id, 'Delete')}><Button size="icon" variant="ghost" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>

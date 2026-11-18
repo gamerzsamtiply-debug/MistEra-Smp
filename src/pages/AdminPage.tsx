@@ -36,7 +36,7 @@ export default function AdminPage() {
   const cur = TABS.find((t) => t.id === tab) ?? TABS[0];
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6"><p className="text-xs font-semibold uppercase tracking-wider text-primary">Admin · @{me?.profile.username}</p><h1 className="mt-1 text-3xl font-bold">Admin Panel</h1></div>
+      <div className="mb-6"><p className="text-xs font-semibold uppercase text-primary">Admin - @{me?.profile.username}</p><h1 className="mt-1 text-3xl font-bold">Admin Panel</h1></div>
       <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
         <nav className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
           {TABS.map((t) => (

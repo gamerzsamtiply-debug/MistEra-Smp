@@ -52,7 +52,7 @@ export default function PartnersTab() {
             <Field label="Name" error={errs.name}><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></Field>
             <Field label="Category"><Select value={edit.category} onValueChange={(v) => setEdit({ ...edit, category: v as P['category'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></Field>
             <Field label="Description"><Textarea rows={3} maxLength={600} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} /></Field>
-            <Field label="Website URL" error={errs.websiteUrl}><Input value={edit.websiteUrl} onChange={(e) => setEdit({ ...edit, websiteUrl: e.target.value })} placeholder="https://…" /></Field>
+            <Field label="Website URL" error={errs.websiteUrl}><Input value={edit.websiteUrl} onChange={(e) => setEdit({ ...edit, websiteUrl: e.target.value })} placeholder="https://..." /></Field>
             <Field label="Logo"><ImageUpload value={edit.logoUrl} onChange={(u) => setEdit({ ...edit, logoUrl: u })} label="Upload logo" /></Field>
           </div>}
           <DialogFooter><Button onClick={save} disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save partner</Button></DialogFooter>

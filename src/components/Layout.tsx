@@ -3,9 +3,8 @@ import { Suspense, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ErrorBoundary from './ErrorBoundary';
-import { Spinner } from './States';
+import { DelayedSpinner } from './States';
 import { useRouteSeo } from '../lib/seo-dom';
-import { isFirstVisit } from '../lib/firstVisit';
 
 export default function Layout() {
   const loc = useLocation();
@@ -17,7 +16,7 @@ export default function Layout() {
       <main className="flex-1">
         {/* keyed boundary: an error on one page never sticks to the next one */}
         <ErrorBoundary key={loc.pathname}>
-          <Suspense fallback={isFirstVisit() ? <Spinner /> : null}><Outlet /></Suspense>
+          <Suspense fallback={<DelayedSpinner />}><Outlet /></Suspense>
         </ErrorBoundary>
       </main>
       <Footer />

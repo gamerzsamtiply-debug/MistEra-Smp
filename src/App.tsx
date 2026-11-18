@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { lazy, useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Toaster } from '@project/components/ui/sonner';
@@ -8,23 +8,20 @@ import ErrorPage from './components/ErrorPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Spinner } from './components/States';
 import Home from './pages/Home';
-import { lazyRetry } from './lib/lazyRetry';
+import { ThemeProvider } from './lib/theme';
+import StaffPage from './pages/StaffPage';
+import PartnersPage from './pages/PartnersPage';
+import PostsPage from './pages/PostsPage';
+import AlbumPage from './pages/AlbumPage';
+import LoginPage from './pages/LoginPage';
 import { markVisited } from './lib/firstVisit';
-const ContentPage = lazyRetry(() => import('./pages/ContentPage'));
-const StaffPage = lazyRetry(() => import('./pages/StaffPage'));
-const PartnersPage = lazyRetry(() => import('./pages/PartnersPage'));
-const PostsPage = lazyRetry(() => import('./pages/PostsPage'));
-const AlbumPage = lazyRetry(() => import('./pages/AlbumPage'));
-const PublicProfile = lazyRetry(() => import('./pages/PublicProfile'));
-const ProfilePage = lazyRetry(() => import('./pages/ProfilePage'));
-const SuggestionsPage = lazyRetry(() => import('./pages/SuggestionsPage'));
-const AdminPage = lazyRetry(() => import('./pages/AdminPage'));
-const LoginPage = lazyRetry(() => import('./pages/LoginPage'));
-const ResetPasswordPage = lazyRetry(() => import('./pages/ResetPasswordPage'));
+const ContentPage = lazy(() => import('./pages/ContentPage'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SuggestionsPage = lazy(() => import('./pages/SuggestionsPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 
-const PRELOAD = [ContentPage, StaffPage, PartnersPage, PostsPage, AlbumPage, LoginPage];
-
-if (typeof document !== 'undefined') document.documentElement.classList.add('dark');
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -36,7 +33,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function RequireAdmin({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const { me, meLoading } = useSite();
-  if (isLoading || (user && meLoading)) return <Spinner label="Checking permissions…" />;
+  if (isLoading || (user && meLoading)) return <Spinner label="Checking permissions..." />;
   if (!user) return <ErrorPage code="401" message="Please log in to access the Admin Panel." />;
   if (!me?.isAdmin) return <ErrorPage code="403" message="You don't have permission to access the Admin Panel." />;
   return <>{children}</>;
@@ -45,13 +42,7 @@ function RequireAdmin({ children }: { children: ReactNode }) {
 function Gate({ children }: { children: ReactNode }) {
   const { settings, error, reload, me } = useSite();
   const { pathname } = useLocation(); // re-evaluate the maintenance exemption on every client-side navigation
-  useEffect(() => {
-    if (!settings) return;
-    markVisited();
-    // download the other pages in the background so clicking through never waits on a loading screen
-    const idle = (window as unknown as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 1500));
-    idle(() => PRELOAD.forEach((c) => c.preload()));
-  }, [!!settings]);
+  useEffect(() => { if (settings) markVisited(); }, [!!settings]);
   if (error && !settings) return <ErrorPage full code={error.kind === 'network' ? '503' : '503'} message={error.kind === 'network' ? "We're having trouble connecting. Check your internet connection and retry." : undefined} onRetry={reload} />;
   if (!settings) return <div className="grid min-h-screen place-items-center"><Spinner /></div>;
   // Admin status comes from the server (getMe); everyone else sees the maintenance page.
@@ -64,6 +55,7 @@ function Gate({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <ErrorBoundary full>
       <SiteProvider>
         <BrowserRouter>
@@ -96,5 +88,6 @@ export default function App() {
         <Toaster richColors position="top-right" />
       </SiteProvider>
     </ErrorBoundary>
+    </ThemeProvider>
   );
 }

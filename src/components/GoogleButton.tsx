@@ -12,7 +12,7 @@ const G = (
   </svg>
 );
 
-/** "Continue with Google" — used on both Sign in and Sign up. Requires the Google provider to be enabled in Supabase. */
+/** "Continue with Google" - used on both Sign in and Sign up. Requires the Google provider to be enabled in Supabase. */
 export default function GoogleButton({ next, onError }: { next: string; onError: (message: string) => void }) {
   const [busy, setBusy] = useState(false);
   const go = async () => {

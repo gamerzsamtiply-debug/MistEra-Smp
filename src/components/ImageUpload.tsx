@@ -31,8 +31,8 @@ export default function ImageUpload({ value, onChange, label = 'Upload image' }:
       ) : (
         <button type="button" disabled={isUploading} onClick={() => ref.current?.click()} className="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-border bg-secondary/40 py-8 text-sm text-muted-foreground transition hover:border-primary hover:text-foreground disabled:opacity-60">
           {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : <ImagePlus className="h-6 w-6 text-primary" />}
-          {isUploading ? 'Uploading…' : label}
-          <span className="text-xs">PNG, JPG, WEBP or GIF · up to {MAX_MB} MB</span>
+          {isUploading ? 'Uploading...' : label}
+          <span className="text-xs">PNG, JPG, WEBP or GIF - up to {MAX_MB} MB</span>
         </button>
       )}
       <input ref={ref} type="file" accept={TYPES.join(',')} hidden onChange={(e) => pick(e.target.files?.[0])} />

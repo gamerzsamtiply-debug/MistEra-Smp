@@ -1,11 +1,19 @@
+import { useEffect, useState } from 'react';
 import { Loader2, type LucideIcon, AlertTriangle, RefreshCw, WifiOff, Lock, ShieldX, SearchX } from 'lucide-react';
 import { Button } from '@project/components/ui/button';
 import { Skeleton } from '@project/components/ui/skeleton';
 import { loginWithRedirect } from '@/lib/auth';
 import type { AppError } from '../lib/errors';
 
-export function Spinner({ label = 'Loading…' }: { label?: string }) {
+export function Spinner({ label = 'Loading...' }: { label?: string }) {
   return <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin text-primary" />{label}</div>;
+}
+
+/** Spinner that only appears if loading takes longer than a moment, so quick page changes never flash. */
+export function DelayedSpinner({ delay = 300 }: { delay?: number }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setShow(true), delay); return () => clearTimeout(t); }, [delay]);
+  return show ? <Spinner /> : null;
 }
 
 export function GridSkeleton({ count = 6, className = 'h-56' }: { count?: number; className?: string }) {

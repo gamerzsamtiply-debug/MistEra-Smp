@@ -8,6 +8,13 @@ const tailwindConfig: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx,css}'],
   theme: {
     extend: {
+      // The Minecraft fonts are drawn on an 8px grid: sizes that are multiples of 8 stay sharp and evenly spaced.
+      fontSize: {
+        sm: ['1rem', { lineHeight: '1.5rem' }],
+        '3xl': ['2rem', { lineHeight: '2.5rem' }],
+        '4xl': ['2.5rem', { lineHeight: '2.75rem' }],
+        '6xl': ['4rem', { lineHeight: '1' }],
+      },
       fontFamily: {
         sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
         serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],

@@ -9,6 +9,7 @@ import { cn } from '@project/components/lib/utils';
 import { useSite } from '../lib/site';
 import { LOGO_MARK } from '../lib/brand';
 import { UserAvatar } from './UserChip';
+import ThemeToggle from './ThemeToggle';
 
 const LINKS = [
   { to: '/', label: 'Home' }, { to: '/information', label: 'Information' }, { to: '/staff', label: 'Staff' },
@@ -33,8 +34,8 @@ export default function Navbar() {
     <header className={cn('sticky top-0 z-50 border-b bg-background', scrolled ? 'border-border' : 'border-transparent')}>
       <nav className="container mx-auto flex h-16 items-center gap-4 px-4">
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={LOGO_MARK} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
-          <span className="font-display text-lg font-bold tracking-tight">MISTERA <span className="text-accent">SMP</span></span>
+          <img src={LOGO_MARK} alt="" width={40} height={40} className="logo-plate h-10 w-10 object-contain" />
+          <span className="font-display text-lg font-bold">MISTERA <span className="text-accent">SMP</span></span>
         </Link>
         <div className="mx-auto hidden xl:flex items-center gap-1">
           {LINKS.map((l) => (
@@ -45,13 +46,14 @@ export default function Navbar() {
           <button onClick={() => openHelp(settings?.ticketUrl)} className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"><LifeBuoy className="h-4 w-4" />Help</button>
         </div>
         <div className="ml-auto xl:ml-0 flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Account menu">
                 <UserAvatar username={me?.profile.username || user.email} avatarUrl={me?.profile.avatarUrl} />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="truncate">@{me?.profile.username ?? '…'}</DropdownMenuLabel>
+                <DropdownMenuLabel className="truncate">@{me?.profile.username ?? '...'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link to="/profile"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
                 {me?.isAdmin && <DropdownMenuItem asChild><Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" />Admin Panel</Link></DropdownMenuItem>}

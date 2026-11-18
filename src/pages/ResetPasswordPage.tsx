@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
     setBusy(true);
     const { error: err } = await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (err) return setError('We could not update your password. The reset link may have expired — request a new one.');
+    if (err) return setError('We could not update your password. The reset link may have expired - request a new one.');
     toast.success('Password updated');
     nav('/', { replace: true });
   };

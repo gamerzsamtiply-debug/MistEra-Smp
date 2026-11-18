@@ -28,11 +28,11 @@ export function useLoad<T>(operation: string, fn: () => Promise<T>, deps: unknow
     setError(null);
     let p = key && !force ? (inflight.get(key) as Promise<T | undefined> | undefined) : undefined;
     if (!p) {
-      p = run(operation, () => fnRef.current(), { retries: 5, silent: true });
+      p = run(operation, () => fnRef.current(), { silent: true });
       if (key) { inflight.set(key, p); p.finally(() => inflight.delete(key)).catch(() => undefined); }
     }
     p.then((d) => { const v = (d ?? null) as T | null; if (key && v !== null) store.set(key, { data: v, at: Date.now() }); setData(v); })
-      .catch((e) => { if (!cached) setError(isAppError(e) ? e : { kind: 'server', title: 'Something Went Wrong', message: "We couldn't load this content.", correlationId: '—' }); })
+      .catch((e) => { if (!cached) setError(isAppError(e) ? e : { kind: 'server', title: 'Something Went Wrong', message: "We couldn't load this content.", correlationId: '-' }); })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [operation, key, ...deps]);

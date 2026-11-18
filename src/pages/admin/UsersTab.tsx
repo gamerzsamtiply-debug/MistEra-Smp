@@ -34,7 +34,7 @@ export default function UsersTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search username…" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></div>
+        <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search username..." value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></div>
         <Select value={role} onValueChange={(v) => { setRole(v); setPage(0); }}><SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger><SelectContent>{FILTERS.map((f) => <SelectItem key={f} value={f}>{f === 'All' ? 'All roles' : f}</SelectItem>)}</SelectContent></Select>
       </div>
       <p className="text-xs text-muted-foreground">{me?.isOwner ? 'You can grant or remove Admin access.' : 'Only the site owner can grant or remove Admin access.'} These roles control admin permissions; the public Staff page is managed in the Staff tab. The site owner account always shows as Admin and can't be changed.</p>
