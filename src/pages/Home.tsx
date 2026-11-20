@@ -75,6 +75,42 @@ function About({ s }: { s: Settings | null }) {
   );
 }
 
+
+const GALLERY_ALT = ['Players building together in the MistEra SMP survival world', 'A scenic spot in the MistEra SMP world'];
+
+function Gallery({ s }: { s: Settings | null }) {
+  return (
+    <section className="wrap pb-12 md:pb-16" aria-label="MistEra SMP screenshots">
+      <Reveal className="grid gap-4 md:grid-cols-3 md:gap-6">
+        <figure className="surface overflow-hidden md:col-span-2">
+          <img src={img(s, 'galleryImageOne')} alt={GALLERY_ALT[0]} loading="lazy" decoding="async" className="h-56 w-full object-cover sm:h-72 md:h-full md:min-h-[22rem]" />
+        </figure>
+        <figure className="surface overflow-hidden">
+          <img src={img(s, 'galleryImageTwo')} alt={GALLERY_ALT[1]} loading="lazy" decoding="async" className="h-56 w-full object-cover sm:h-72 md:h-full md:min-h-[22rem]" />
+        </figure>
+      </Reveal>
+    </section>
+  );
+}
+
+function JoinBanner({ s }: { s: Settings | null }) {
+  return (
+    <section className="wrap pb-12 md:pb-20" aria-label="Join MistEra SMP">
+      <Reveal className="relative isolate overflow-hidden rounded-2xl border border-border">
+        <img src={img(s, 'bannerImage')} alt="" loading="lazy" decoding="async" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+        <div className="absolute inset-0 -z-10 bg-background/70" />
+        <div className="flex flex-col items-start gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-10">
+          <div>
+            <h2 className="text-2xl font-semibold md:text-3xl">Ready to join MistEra?</h2>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground md:text-base">Join our Discord, submit your Gamertag and start playing once staff approve you.</p>
+          </div>
+          <button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg w-full md:w-auto"><MessageCircle />Join Discord</button>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 function Join({ s }: { s: Settings | null }) {
   const { steps } = useSite();
   return (
@@ -102,7 +138,9 @@ export default function Home() {
     <>
       <Hero s={s} />
       <About s={s} />
+      <Gallery s={s} />
       <Join s={s} />
+      <JoinBanner s={s} />
     </>
   );
 }

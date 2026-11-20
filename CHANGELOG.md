@@ -64,7 +64,6 @@
 - The loading indicator for page changes and the first load is only shown on a visitor's first visit (`mistera-visited` in localStorage).
 
 ## Unreleased: entity SEO + new icon
-- New site icon (favicon.ico, PNG sizes, apple-touch-icon, web manifest) from the MS logo; also used for social previews.
 - server/knowledge.ts: verified facts about the team (owner Omar Faruk / MrKidzz, admin kelausking, moderators Zenko Playz, greamyboyyy, Abidvaiya). Published as JSON-LD (Person, Organization, FAQPage), in /llms.txt and /llms-full.txt, and as a "Who is who" text block on /staff.
 - Extra meta tags (keywords, author, geo) on all server-rendered pages.
 - Removed the standalone /500 error page: /500 now redirects home.

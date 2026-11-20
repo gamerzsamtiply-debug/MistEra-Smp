@@ -14,8 +14,8 @@ import type { ContentPageRow, JoinStepRow, PostRow } from './types.js';
 const SITE_URL = (process.env.SITE_URL?.trim() || 'https://misterasmp.fun').replace(/\/+$/, '');
 const SITE_NAME = 'MistEra SMP';
 // Keep in sync with src/lib/brand.ts
-const LOGO_FULL = `${SITE_URL}/mistera-logo.png`;
-const LOGO_MARK = `${SITE_URL}/icon-512.png`;
+const LOGO_FULL = 'https://images.fillout.com/orgid-872088/flowpublicid-default/widgetid-default/izC6Y3nYkqxHzT27wKMwCZ/pasted-image-1794900117962-8prmhkmt.png';
+const LOGO_MARK = 'https://images.fillout.com/orgid-872088/flowpublicid-default/widgetid-default/xjP4jVuf1pyXaa8YHDiC6N/pasted-image-1794900117871-q8mwoogl.png';
 
 const DEFAULT_HERO_TITLE = "Bangladesh's Bedrock SMP. Online 24/7.";
 const DEFAULT_ABOUT_HEADING = 'Private by design. Built together.';
@@ -183,7 +183,7 @@ function tagsHtml(m: Meta): string {
     `<link rel="canonical" href="${esc(m.canonical)}" data-seo="rel:canonical" />`,
     t('og:type', 'website', 'property'), t('og:site_name', SITE_NAME, 'property'), t('og:locale', 'en_US', 'property'),
     t('og:title', m.title, 'property'), t('og:description', m.description, 'property'), t('og:url', m.canonical, 'property'),
-    t('og:image', LOGO_FULL, 'property'), t('og:image:alt', 'MistEra SMP logo', 'property'), t('og:image:width', '800', 'property'), t('og:image:height', '800', 'property'),
+    t('og:image', LOGO_FULL, 'property'), t('og:image:alt', 'MistEra SMP logo', 'property'),
     t('twitter:card', 'summary_large_image'), t('twitter:title', m.title), t('twitter:description', m.description), t('twitter:image', LOGO_FULL),
     m.jsonLd ? `<script type="application/ld+json" data-seo="jsonld">${JSON.stringify(m.jsonLd).replace(/</g, '\\u003c')}</script>` : '',
   ].filter(Boolean).map((x) => `    ${x}`).join('\n');

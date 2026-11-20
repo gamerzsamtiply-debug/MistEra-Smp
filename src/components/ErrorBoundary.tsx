@@ -15,9 +15,10 @@ export default class ErrorBoundary extends Component<{ children: ReactNode; full
 
   static getDerivedStateFromError(error: Error): State { return { error }; }
 
-  componentDidCatch(error: Error) {
-    console.error('[render error]', error);
-    report('Render', new Error(String(error?.message ?? 'Unknown render error').slice(0, 300)), 'render');
+  componentDidCatch(error: Error, info?: { componentStack?: string | null }) {
+    console.error('[render error]', error, info?.componentStack);
+    const where = String(info?.componentStack ?? '').trim().split('\n')[0]?.trim().slice(0, 100);
+    report('Render', new Error(`${String(error?.message ?? 'Unknown render error').slice(0, 180)}${where ? ` @ ${where}` : ''}`), 'render');
   }
 
   render() {
