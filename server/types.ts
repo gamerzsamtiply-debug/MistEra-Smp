@@ -23,6 +23,11 @@ export interface SettingsRow {
   gallery_image_one: string | null;
   gallery_image_two: string | null;
   banner_image: string | null;
+  hero_title?: string | null;
+  about_heading?: string | null;
+  about_text?: string | null;
+  about_tagline?: string | null;
+  seo_description?: string | null;
 }
 
 export interface JoinStepRow {
@@ -93,6 +98,7 @@ export interface AlbumRow {
   uploader: string | null;
   status: AlbumStatus | null;
   submitted_at: string | null;
+  media_type?: 'image' | 'video' | null;
 }
 
 export interface SuggestionRow {
@@ -128,4 +134,13 @@ export interface PublicUser {
   username: string;
   avatarUrl: string;
   role: string;
+}
+
+export interface AlbumCommentRow {
+  id: string;
+  submission_id: string;
+  user_id: string;
+  parent_id: string | null;
+  body: string | null;
+  created_at: string | null;
 }

@@ -1,11 +1,33 @@
 # https://misterasmp.fun/robots.txt
+# Public website pages are open to search engines AND AI assistants. The admin panel and the back-end API are not.
+# (The admin panel also needs a login, and it is never part of what AI tools are given: see /llms.txt.)
 User-agent: *
 Allow: /
-# Back-end API and the admin panel are not for search results.
 Disallow: /api/
 Disallow: /admin
+
+# AI crawlers/assistants: allowed to read the public website. A bot that has its own group ignores the "*" group,
+# so the admin/API rules are repeated here.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: Googlebot
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
 # Account pages (/login, /profile, /suggestions, /reset-password) and player profiles (/u/…) stay crawlable on
 # purpose: they send an "X-Robots-Tag: noindex" header (see vercel.json), which crawlers can only obey if
 # they are allowed to fetch the page. Do not block /assets/: Google needs the JS and CSS to render the site.
 
 Sitemap: https://misterasmp.fun/sitemap.xml
+# AI-friendly plain-text summary of the site (server details, staff, pages): https://misterasmp.fun/llms.txt

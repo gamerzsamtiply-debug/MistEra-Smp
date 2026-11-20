@@ -11,6 +11,7 @@ interface State { error: Error | null }
  */
 export default class ErrorBoundary extends Component<{ children: ReactNode; full?: boolean }, State> {
   state: State = { error: null };
+  private retried = false;
 
   static getDerivedStateFromError(error: Error): State { return { error }; }
 
@@ -20,7 +21,12 @@ export default class ErrorBoundary extends Component<{ children: ReactNode; full
   }
 
   render() {
-    if (this.state.error) return <ErrorPage code="500" full={this.props.full} onRetry={() => window.location.reload()} />;
+    // The real error text is shown (short) so a crash can be diagnosed from a screenshot. "Try again" first re-renders
+    // the page in place and only falls back to a full reload if the same error comes straight back.
+    if (this.state.error) {
+      const detail = String(this.state.error?.message ?? '').slice(0, 300);
+      return <ErrorPage code="500" full={this.props.full} detail={detail} onRetry={() => { if (this.retried) window.location.reload(); else { this.retried = true; this.setState({ error: null }); } }} />;
+    }
     return this.props.children;
   }
 }

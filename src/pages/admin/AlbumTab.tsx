@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Media from '../../components/Media';
 import { Check, X, Trash2, Images } from 'lucide-react';
 import { adminListAlbum, adminReviewAlbum } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
@@ -27,7 +28,7 @@ export default function AlbumTab() {
       {loading ? <GridSkeleton /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.items.length ? <EmptyState icon={Images} title={`No ${status.toLowerCase()} submissions`} message="Nothing to review here right now." /> : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{data.items.map((a) => (
           <div key={a.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-            <a href={a.imageUrl} target="_blank" rel="noreferrer"><img src={a.imageUrl} alt={a.caption} loading="lazy" className="aspect-video w-full object-cover" /></a>
+            <a href={a.imageUrl} target="_blank" rel="noreferrer"><Media type={a.mediaType} src={a.imageUrl} alt={a.caption} controls={false} className="aspect-video w-full object-cover" /></a>
             <div className="space-y-3 p-4">
               <div className="flex items-center justify-between"><UserChip user={a.uploader} /><span className="text-xs text-muted-foreground">{fmtDate(a.submittedAt)}</span></div>
               {a.caption && <p className="text-sm text-muted-foreground">{a.caption}</p>}

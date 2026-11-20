@@ -54,6 +54,18 @@ export const ROUTES: SeoRoute[] = [
     h1: 'Information',
   },
   {
+    path: '/about',
+    title: 'About Us | MistEra SMP',
+    description: 'About MistEra SMP: who we are, how the private whitelisted Minecraft Bedrock survival server in Bangladesh works and what the community stands for.',
+    h1: 'About Us',
+  },
+  {
+    path: '/rules',
+    title: 'Server Rules | MistEra SMP',
+    description: 'The official rules of the MistEra SMP Minecraft Bedrock server in Bangladesh. Read them before you apply for the whitelist and play.',
+    h1: 'Server Rules',
+  },
+  {
     path: '/staff',
     title: 'Staff Team | MistEra SMP',
     description:
@@ -90,7 +102,20 @@ export const ROUTES: SeoRoute[] = [
     description: 'The terms of service for the MistEra SMP Minecraft Bedrock server and its community.',
     h1: 'Terms of Service',
   },
+  {
+    path: '/privacy',
+    title: 'Privacy Policy | MistEra SMP',
+    description: 'How MistEra SMP, a Minecraft Bedrock server and community from Bangladesh, handles account data, profiles and what you share on the website.',
+    h1: 'Privacy Policy',
+  },
 ];
+
+/**
+ * Routes rendered on the server with live data from the database (api/seo.ts → server/seoPage.ts), so crawlers and AI
+ * assistants get the real staff list, page text and homepage copy that admins edit. They are NOT written as static
+ * files at build time. Every other route in ROUTES is a static pre-rendered file.
+ */
+export const DYNAMIC_PATHS = ['/', '/staff', '/about', '/information', '/rules', '/terms', '/privacy'];
 
 /** Pages that exist but must stay out of search results (accounts, admin, errors, user-generated profiles). */
 const PRIVATE_TITLES: Record<string, string> = {
@@ -102,7 +127,6 @@ const PRIVATE_TITLES: Record<string, string> = {
   '/admin': 'Admin panel | MistEra SMP',
   '/401': 'Authentication required | MistEra SMP',
   '/403': 'Access forbidden | MistEra SMP',
-  '/500': 'Something went wrong | MistEra SMP',
   '/503': 'Service unavailable | MistEra SMP',
 };
 export const NOT_FOUND_TITLE = 'Page not found | MistEra SMP';

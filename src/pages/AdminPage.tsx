@@ -22,7 +22,7 @@ const TABS = [
   { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, el: <Overview /> },
   { id: 'settings', label: 'Server & Help Settings', icon: Server, el: <SettingsTab /> },
   { id: 'steps', label: 'Whitelist Guide', icon: ListOrdered, el: <StepsTab /> },
-  { id: 'pages', label: 'Information & Terms', icon: FileText, el: <PagesTab /> },
+  { id: 'pages', label: 'Pages (About, Info, Terms...)', icon: FileText, el: <PagesTab /> },
   { id: 'ann', label: 'Announcements', icon: Megaphone, el: <PostsTab kind="Announcement" /> },
   { id: 'upd', label: 'Updates', icon: Sparkles, el: <PostsTab kind="Update" /> },
   { id: 'staff', label: 'Staff', icon: UserRound, el: <StaffTab /> },

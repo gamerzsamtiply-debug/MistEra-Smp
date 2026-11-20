@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MessageCircle, Vote, BookOpen, ArrowDown, Clock, ShieldCheck, MapPin, Gamepad2 } from 'lucide-react';
+import { MessageCircle, Vote, BookOpen, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@project/components/lib/utils';
 import { useSite, type Settings } from '../lib/site';
@@ -29,9 +29,9 @@ function Hero({ s }: { s: Settings | null }) {
       <div className="wrap hero-inner">
         <img src={LOGO_FULL} alt="MistEra SMP logo" decoding="async" {...HIGH_PRIORITY} className="logo-plate h-14 w-auto max-w-[70%] object-contain md:h-16" />
         {s && <p className="mt-6 inline-flex items-center gap-2 glass !rounded-full px-3 py-1 text-xs font-medium">
-          <span className={cn('h-2 w-2 rounded-full', STATUS_DOT[s.serverStatus] ?? 'bg-muted')} />Server {s.serverStatus.toLowerCase()} - {s.platform || 'Minecraft Bedrock'}
+          <span className={cn('h-2 w-2 rounded-full', s.serverStatus === 'Online' && 'pulse-dot', STATUS_DOT[s.serverStatus] ?? 'bg-emerald-400')} />Server {(s.serverStatus || 'Online').toLowerCase()} - {s.platform || 'Minecraft Bedrock'}
         </p>}
-        <h1 className="mt-4 font-semibold"><span className="sr-only">MistEra SMP - </span>Bangladesh's Bedrock SMP. Online 24/7.</h1>
+        <h1 className="mt-4 font-semibold"><span className="sr-only">MistEra SMP - </span>{s?.heroTitle?.trim() || DEFAULT_HERO_TITLE}</h1>
         <p className="mt-4 max-w-lg text-base text-foreground/80 md:text-lg">{s?.heroTagline}</p>
         <div className="mt-8 grid w-full max-w-xl gap-3 sm:grid-cols-[1fr_9rem]">
           <CopyField label="Server IP" value={s?.serverAddress ?? ''} />
@@ -50,48 +50,27 @@ function Hero({ s }: { s: Settings | null }) {
   );
 }
 
-const FACTS = [
-  { icon: Clock, t: 'Always on', d: 'A dedicated Bedrock server that runs 24 hours a day, 7 days a week.' },
-  { icon: ShieldCheck, t: 'Whitelist only', d: 'Every player is approved by staff through Discord before they can connect.' },
-  { icon: MapPin, t: 'Based in Bangladesh', d: 'A local community, so you play with people from your own region.' },
-  { icon: Gamepad2, t: 'Bedrock Edition', d: 'Built for Minecraft Bedrock on mobile, console and Windows.' },
+const DEFAULT_HERO_TITLE = "Bangladesh's Bedrock SMP. Online 24/7.";
+const DEFAULT_ABOUT_HEADING = 'Private by design. Built together.';
+const DEFAULT_ABOUT_TAGLINE = 'Eras End. MistEra Never Fades.';
+const ABOUT_TEXT = [
+  'MistEra SMP is a private, whitelist-only Minecraft Bedrock Edition survival server, running 24/7 on dedicated hosting for a smooth and reliable gameplay experience.',
+  'Access is managed through our official Discord community. To join the server, simply join our Discord, visit the Gamer Tag channel, and submit your Minecraft Bedrock Gamertag for whitelist approval.',
+  "Once approved, you're ready to enter MistEra and become part of the community.",
 ];
 
 function About({ s }: { s: Settings | null }) {
+  const paragraphs = (s?.aboutText ?? '').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean);
+  const text = paragraphs.length ? paragraphs : ABOUT_TEXT;
   return (
     <section className="wrap sect">
-      <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
-        <Reveal>
-          <h2 className="text-2xl font-semibold md:text-3xl">Private by design. Built together.</h2>
-          <p className="mt-4 max-w-prose whitespace-pre-line text-base leading-relaxed text-muted-foreground">{s?.introText}</p>
-        </Reveal>
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {FACTS.map((f) => (
-            <li key={f.t} className="surface p-5">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary"><f.icon className="h-4 w-4 text-primary" /></span>
-              <h3 className="mt-4 text-base font-semibold">{f.t}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{f.d}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-function Gallery({ s }: { s: Settings | null }) {
-  return (
-    <section className="wrap pb-12 md:pb-16">
-      <div className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
-        <div className="glass relative isolate flex min-h-[260px] overflow-hidden md:min-h-[340px]">
-          <img src={img(s, 'galleryImageOne')} alt="A castle build above a misty lake" loading="lazy" decoding="async" className="fade-edges absolute inset-0 -z-10 h-full w-full object-cover" />
-          <div className="mt-auto p-5 md:p-7"><h3 className="text-xl font-semibold md:text-2xl">A world shaped by its players.</h3><p className="mt-1.5 max-w-md text-sm text-foreground/75">Every base, farm and town you see was built by someone on the whitelist.</p></div>
+      <Reveal className="mx-auto max-w-3xl">
+        <h2 className="text-3xl font-semibold md:text-4xl">{s?.aboutHeading?.trim() || DEFAULT_ABOUT_HEADING}</h2>
+        <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground md:text-lg">
+          {text.map((t) => <p key={t}>{t}</p>)}
         </div>
-        <div className="glass relative isolate flex min-h-[260px] overflow-hidden">
-          <img src={img(s, 'galleryImageTwo')} alt="A lantern-lit village at night" loading="lazy" decoding="async" className="fade-edges absolute inset-0 -z-10 h-full w-full object-cover" />
-          <div className="mt-auto p-5"><h3 className="text-lg font-semibold">Discord-first community</h3><p className="mt-1 text-sm text-foreground/75">Whitelist, support and news all live there.</p></div>
-        </div>
-      </div>
+        <p className="font-display mt-8 text-xl font-semibold text-primary md:text-2xl">{s?.aboutTagline?.trim() || DEFAULT_ABOUT_TAGLINE}</p>
+      </Reveal>
     </section>
   );
 }
@@ -123,16 +102,7 @@ export default function Home() {
     <>
       <Hero s={s} />
       <About s={s} />
-      <Gallery s={s} />
       <Join s={s} />
-      <section className="relative isolate overflow-hidden">
-        <img src={img(s, 'bannerImage')} alt="" loading="lazy" className="fade-edges absolute inset-0 -z-10 h-full w-full object-cover opacity-60" style={{ filter: 'blur(2px)' }} />
-        <div className="wrap flex flex-col items-start py-14 md:py-20">
-          <h2 className="text-2xl font-semibold md:text-3xl">Your spot is waiting.</h2>
-          <p className="mt-3 max-w-lg text-foreground/80">Join the Discord, post your GamerTag in the whitelist channel and wait for approval.</p>
-          <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"><button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg"><MessageCircle />Join our Discord</button><button onClick={() => openLink(s?.voteUrl, 'Voting')} className="mc-btn mc-btn--lg mc-btn--gold"><Vote />Vote us</button></div>
-        </div>
-      </section>
     </>
   );
 }

@@ -22,9 +22,11 @@ function write(tag: Tag) {
   if (tag.text !== undefined && el.textContent !== tag.text) el.textContent = tag.text;
 }
 
-export function applySeo(pathname: string, sameAs: string[] = []) {
+export function applySeo(pathname: string, sameAs: string[] = [], homeDescription = '') {
   if (typeof document === 'undefined') return;
-  const seo = resolveSeo(pathname);
+  let seo = resolveSeo(pathname);
+  // the homepage description is editable in Admin > Settings; keep it identical to what the server rendered
+  if (homeDescription.trim() && seo.route?.path === '/') seo = { ...seo, description: homeDescription.trim() };
   const tags = buildTags(seo, { sameAs });
   const wanted = new Set(tags.map((t) => t.key));
   // remove managed tags that do not apply to this route (e.g. canonical on a noindex page, JSON-LD off the homepage)
@@ -38,7 +40,8 @@ export function useRouteSeo() {
   const { pathname } = useLocation();
   const { settings } = useSite();
   const discord = settings?.discordUrl || '';
+  const homeDesc = settings?.seoDescription || '';
   useEffect(() => {
-    try { applySeo(pathname, /^https:\/\//i.test(discord) ? [discord] : []); } catch (e) { console.warn('[seo] could not update page tags', e); } // SEO must never break the app
-  }, [pathname, discord]);
+    try { applySeo(pathname, /^https:\/\//i.test(discord) ? [discord] : [], homeDesc); } catch (e) { console.warn('[seo] could not update page tags', e); } // SEO must never break the app
+  }, [pathname, discord, homeDesc]);
 }

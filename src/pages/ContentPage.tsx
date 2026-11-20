@@ -7,12 +7,16 @@ import { EmptyState, InlineError, Spinner } from '../components/States';
 import { useLoad } from '../lib/useLoad';
 import { fmtDate } from '../lib/format';
 
-export default function ContentPage({ slug }: { slug: 'information' | 'terms' }) {
+const FALLBACK: Record<string, [string, string]> = {
+  information: ['Information', 'About the server'], about: ['About Us', 'MistEra SMP'], rules: ['Server Rules', 'Community'], terms: ['Terms of Service', 'Legal'], privacy: ['Privacy Policy', 'Legal'],
+};
+
+export default function ContentPage({ slug }: { slug: 'information' | 'about' | 'rules' | 'terms' | 'privacy' }) {
   const { data, error, loading, reload } = useLoad(`Load ${slug}`, () => getPage({ slug }), [slug], { cache: true });
-  const fallback = slug === 'terms' ? 'Terms of Service' : 'Information';
+  const [fallback, eyebrow] = FALLBACK[slug];
   return (
     <>
-      <PageHeader eyebrow={slug === 'terms' ? 'Legal' : 'About the server'} title={data?.title || fallback} subtitle={data?.updatedAt ? `Last updated ${fmtDate(data.updatedAt)}` : undefined} />
+      <PageHeader eyebrow={eyebrow} title={data?.title || fallback} subtitle={data?.updatedAt ? `Last updated ${fmtDate(data.updatedAt)}` : undefined} />
       <div className="container mx-auto max-w-3xl px-4 py-12 space-y-8">
         {slug === 'information' && <WhitelistNotice />}
         {loading ? <Spinner /> : error ? (error.kind === 'notFound' ? <EmptyState icon={FileText} title="Not published yet" message="This page hasn't been published yet. Please check back later." /> : <InlineError error={error} onRetry={reload} />) : (

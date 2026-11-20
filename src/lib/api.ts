@@ -58,6 +58,11 @@ export interface SiteSettings {
   galleryImageOne: string;
   galleryImageTwo: string;
   bannerImage: string;
+  heroTitle?: string;
+  aboutHeading?: string;
+  aboutText?: string;
+  aboutTagline?: string;
+  seoDescription?: string;
 }
 
 export interface GetSiteOutputType {
@@ -81,6 +86,11 @@ export interface AdminSaveSettingsInputType {
   galleryImageOne?: string;
   galleryImageTwo?: string;
   bannerImage?: string;
+  heroTitle?: string;
+  aboutHeading?: string;
+  aboutText?: string;
+  aboutTagline?: string;
+  seoDescription?: string;
 }
 
 export interface AdminSavePartnerInputType {
@@ -152,7 +162,7 @@ export const getMe = (input?: Any) => call<Any>('getMe', input);
 export const getPage = (input?: Any) => call<Any>('getPage', input);
 export const getPublicProfile = (input?: Any) => call<Any>('getPublicProfile', input);
 export const getSite = (input?: Record<string, never> | undefined) => call<GetSiteOutputType>('getSite', input);
-export const listAlbum = (input?: Any) => call<Any>('listAlbum', input);
+export const listAlbum = (input?: Any) => call<{ images: AlbumItem[] }>('listAlbum', input);
 export const listPartners = (input?: Any) => call<Any>('listPartners', input);
 export const listPosts = (input?: Any) => call<Any>('listPosts', input);
 export const listStaff = (input?: Any) => call<Any>('listStaff', input);
@@ -166,4 +176,17 @@ export const submitFeedback = (input: { name?: string; contact?: string; message
 export const adminListFeedback = (input?: Any) => call<Any>('adminListFeedback', input);
 export const adminDeleteFeedback = (input?: Any) => call<Any>('adminDeleteFeedback', input);
 export const latestPosts = (input?: Any) => call<{ posts: { id: string; kind: 'Announcement' | 'Update'; title: string; body: string; imageUrl: string; publishedAt: string }[] }>('latestPosts', input);
+export interface AlbumItem {
+  id: string; mediaType: 'image' | 'video'; imageUrl: string; caption: string; submittedAt: string;
+  uploader: { id: string; username: string; avatarUrl: string; role: string } | null;
+  likeCount: number; commentCount: number; likedByMe: boolean;
+}
+export interface AlbumComment {
+  id: string; parentId: string | null; body: string; createdAt: string;
+  user: { id: string; username: string; avatarUrl: string; role: string } | null; canDelete: boolean;
+}
+export const toggleAlbumLike = (input: { id: string }) => call<{ liked: boolean; likes: number }>('toggleAlbumLike', input);
+export const listAlbumComments = (input: { id: string }) => call<{ comments: AlbumComment[] }>('listAlbumComments', input);
+export const addAlbumComment = (input: { id: string; body: string; parentId?: string | null }) => call<{ comment: AlbumComment }>('addAlbumComment', input);
+export const deleteAlbumComment = (input: { id: string }) => call<{ ok: true }>('deleteAlbumComment', input);
 export const health = (input?: Any) => call<{ ok: boolean; env: Record<string, boolean>; missingTables: string[]; keyProblem: boolean }>('health', input);

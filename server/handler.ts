@@ -15,7 +15,8 @@ export interface HandlerResponse {
   body: unknown;
 }
 
-const errorBody = (code: string, message: string) => ({ error: { code, message } });
+const errorBody = (code: string, message: string, ref?: string) => ({ error: { code, message, ...(ref ? { ref } : {}) } });
+const newRef = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 /** Framework-independent request handler used by both Vercel (api/[name].ts) and the local dev server. */
 export async function handle(req: HandlerRequest): Promise<HandlerResponse> {
@@ -33,14 +34,24 @@ export async function handle(req: HandlerRequest): Promise<HandlerResponse> {
       if (!user) return { status: 401, body: errorBody('UNAUTHORIZED', 'Please log in to continue.') };
     }
 
+    // Optional login: personalise when a valid token is sent, never fail because of a missing/expired one.
+    if (!ep.authenticated && ep.optionalAuth && req.authorization) {
+      try { user = await authenticate(req.authorization); } catch { user = null; }
+    }
+
     const result = await ep.run(parsed.data, user, { ip: req.ip || 'unknown' });
     return { status: 200, body: result ?? {} };
   } catch (e) {
     if (e instanceof ApiError) {
-      if (e.code === 'INTERNAL') return { status: 500, body: errorBody('INTERNAL', 'Something went wrong on our side. Please try again.') };
+      if (e.code === 'INTERNAL') {
+        const ref = newRef();
+        console.error(`[api:${req.name}] ref=${ref} ${e.message}`);
+        return { status: 500, body: errorBody('INTERNAL', `Something went wrong on our side (ref ${ref}). Please try again.`, ref) };
+      }
       return { status: e.status, body: errorBody(e.code, e.message) };
     }
-    console.error(`[api:${req.name}]`, e);
-    return { status: 500, body: errorBody('INTERNAL', 'Something went wrong on our side. Please try again.') };
+    const ref = newRef();
+    console.error(`[api:${req.name}] ref=${ref}`, e);
+    return { status: 500, body: errorBody('INTERNAL', `Something went wrong on our side (ref ${ref}). Please try again.`, ref) };
   }
 }

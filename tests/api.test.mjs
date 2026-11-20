@@ -214,13 +214,30 @@ await test('partners: add, edit, list sorted, validation, delete', async () => {
 await test('content pages: unpublished is 404, publish, empty-publish rejected, list defaults', async () => {
   users(); await ok('getMe', {}, 't-owner');
   await denied('getPage', { slug: 'terms' }, undefined, 404);
-  const l = (await ok('adminListPages', {}, 't-owner')).pages; assert.deepEqual(l.map((p) => p.title), ['Server Information', 'Terms of Service']);
+  const l = (await ok('adminListPages', {}, 't-owner')).pages; assert.deepEqual(l.map((p) => p.slug), ['information', 'about', 'rules', 'terms', 'privacy']);
+  assert.deepEqual(l.map((p) => p.title), ['Server Information', 'About Us', 'Server Rules', 'Terms of Service', 'Privacy Policy']);
   await denied('adminSavePage', { slug: 'terms', title: 'T', content: ' ', published: true }, 't-owner', 400);
   await ok('adminSavePage', { slug: 'terms', title: 'Terms', content: '# Rules', published: false }, 't-owner');
   await denied('getPage', { slug: 'terms' }, undefined, 404);
   await ok('adminSavePage', { slug: 'terms', title: 'Terms', content: '# Rules', published: true }, 't-owner');
   const pg = await ok('getPage', { slug: 'terms' }); assert.equal(pg.content, '# Rules'); assert.ok(pg.updatedAt);
   assert.equal(fake.rows('content_pages').length, 1);
+  // About / Rules / Privacy are editable and publishable too; unknown slugs are rejected
+  await ok('adminSavePage', { slug: 'about', title: 'About Us', content: 'We are MistEra.', published: true }, 't-owner');
+  assert.equal((await ok('getPage', { slug: 'about' })).title, 'About Us');
+  await denied('getPage', { slug: 'secret' }, undefined, 400);
+  await denied('adminSavePage', { slug: 'secret', title: 'x', content: 'y', published: true }, 't-owner', 400);
+});
+
+console.log('\nHomepage content (hero, about, SEO)');
+await test('settings: hero title, about block and SEO description are editable and public; save works even before migration 0006', async () => {
+  users(); await ok('getMe', {}, 't-owner');
+  const base = { serverAddress: 'play.example.com', serverPort: 19132, platform: 'Bedrock', serverStatus: 'Online', discordUrl: '', voteUrl: '', ticketUrl: '', heroTagline: 'Tag', introText: '', maintenanceMode: false, maintenanceMessage: '' };
+  const r = await ok('adminSaveSettings', { ...base, heroTitle: 'New hero', aboutHeading: 'About', aboutText: 'P1\n\nP2', aboutTagline: 'Line', seoDescription: 'Desc' }, 't-owner');
+  assert.equal(r.needsMigration, false);
+  const s = (await ok('getSite')).settings;
+  assert.deepEqual([s.heroTitle, s.aboutHeading, s.aboutText, s.aboutTagline, s.seoDescription], ['New hero', 'About', 'P1\n\nP2', 'Line', 'Desc']);
+  assert.equal((await ok('adminGetSettings', {}, 't-owner')).heroTitle, 'New hero');
 });
 
 console.log('\nAlbum (submit → moderate → public)');
@@ -228,7 +245,7 @@ await test('album: submit, limits, moderation, public visibility, ownership', as
   await seedStaff(); await ok('getMe', {}, 't-m1'); await ok('getMe', {}, 't-m2');
   await denied('submitAlbum', { imageUrl: '', caption: '' }, 't-m1', 400);
   await denied('submitAlbum', { imageUrl: 'data:image/png;base64,AAA', caption: '' }, 't-m1', 400);
-  await denied('submitAlbum', { imageUrl: 'https://fake.supabase.co/storage/v1/object/public/uploads/u/a.png', caption: 'x'.repeat(121) }, 't-m1', 400);
+  await denied('submitAlbum', { imageUrl: 'https://fake.supabase.co/storage/v1/object/public/uploads/u/a.png', caption: 'x'.repeat(301) }, 't-m1', 400);
   for (let i = 0; i < 10; i++) await ok('submitAlbum', { imageUrl: `https://fake.supabase.co/storage/v1/object/public/uploads/u/${i}.png`, caption: `c${i}` }, 't-m1');
   await denied('submitAlbum', { imageUrl: 'https://fake.supabase.co/storage/v1/object/public/uploads/u/11.png', caption: '' }, 't-m1', 429, 'RATE_LIMITED');
   assert.equal((await ok('listAlbum')).images.length, 0);                              // pending is not public

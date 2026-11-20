@@ -33,3 +33,62 @@ This environment had no network, so `npm install`, `npm run build`, the tests an
 - Glass cards on both themes, Apple white (#f5f5f7) light mode, logos no longer sit on a dark tile, images fade at their edges.
 - Notifications bell (new announcements/updates), Feedback page (/feedback) + Admin > Feedback tab.
 - Home page reduced to the essentials (staff, announcements, updates and album sections removed; their own pages remain).
+
+
+---
+# Update 3 (500 page, fonts, navigation, home, album)
+
+**Run `supabase/migrations/0005_album_social.sql` in the Supabase SQL Editor** (video, likes, comments, replies; also raises the upload limit to 50 MB for videos). Until it is run the album still works, only likes/comments/video need it. Then redeploy.
+
+## The 500 page
+- The 500 / "Try again" page now prints the real error text under the message, and "Try again" re-renders in place first (a full reload only if the same error returns). If you still get it, send a screenshot of that text.
+- A failed site-settings load no longer shows a bare "503": it says why (for example *Setup needed: SUPABASE_SERVICE_ROLE_KEY missing / run migration*) and where to look (`/api/health`).
+- Defensive fixes for things that could crash a render: odd/old cached settings are discarded (cache key bumped), missing status/profile/notification data no longer throws.
+- Check quickly: open the site, press F12, Console, and run `fetch('/api/health',{method:'POST'}).then(r=>r.text()).then(console.log)`. It lists missing env vars and tables.
+
+## Look and feel
+- Fonts: headlines, buttons, labels and every bold bit use Milky Moringa. The small description paragraphs under headlines use a normal font (Inter, self-hosted) instead.
+- Glass cards removed everywhere: plain solid cards, no blur.
+- Navigation like YouTube: sidebar on desktop (icon + small label, full labels on wide screens); on phones/tablets a row of section chips under the top bar. No hamburger menu. Album, Staff, Updates and the rest are separate pages one tap away.
+- Animations are back: page fade-in, scroll reveal, staggered hero, button press, live status pulse, like pop (all off for "reduce motion").
+- Home is now light: hero (IP/port, Discord, vote), "Private by design. Built together." with your text and "Eras End. MistEra Never Fades.", and How to join.
+- After creating an account (email or Google) you land on the Home page.
+
+## Album
+- Posts: author avatar + name on top, then the photo or video, like button, comment button, caption.
+- Caption up to 30 characters shows in full; longer ones are cut with "show more" / "show less" (max 300 characters).
+- Like (instant), comments and replies (one level), delete your own comment (moderators/admins can delete any).
+- Photo or video upload: images up to 5 MB, videos MP4/WEBM/MOV up to 50 MB (Supabase free plan maximum). Videos still go through staff approval.
+- CSP updated (`media-src`) so videos from Supabase storage can play.
+
+## Not verified here
+No network in the build environment: `npm install`, `npm run ci` and a real Vercel/Supabase run were not possible. All 191 TS/TSX files pass a syntax check and the server code type-checks apart from pre-existing implicit-any notes caused by missing packages. Please run `npm run ci` and tell me anything that fails.
+
+
+---
+# Update 4 (editable content, 500 hardening, SEO for people and AI)
+
+**Run `supabase/migrations/0006_site_content.sql` in the Supabase SQL Editor, then redeploy.** Until it is run, "Save settings" still works (the new text fields just are not stored, and you get a warning telling you so).
+
+## Everything is editable in Admin
+- **Admin > Server & Help Settings**: *Hero title* (the big H1), *Hero description*, the homepage **About** section (heading, text, highlighted closing line) and the *Search & AI description*. Empty field = the old built-in text, so nothing changes until you edit.
+- **Admin > Pages**: Information, **About us**, **Rules**, Terms and **Privacy** (each has its own address: /information /about /rules /terms /privacy). A page appears on the site, in the sitemap and for AI only when it is *Published* and has text. Footer links were added.
+- Staff already had its own tab (Admin > Staff).
+
+## 500 errors
+- `getSite` no longer fails the whole website when only the How-to-join read fails (this showed up as a site-wide error page).
+- A bad / expired / malformed login token is now always **401** (was sometimes **500**), so a stale session can no longer produce server errors.
+- Every unexpected 500 now carries a **ref code** (`ref ABC123`) that is also printed in Vercel > Logs (`[api:<name>] ref=ABC123`), so the exact failing call can be found in one search.
+- "Save settings" no longer breaks if a migration is missing; it saves what it can and says what to run.
+- Still the fastest diagnosis: open Admin > Overview > *Setup check* (or POST `/api/health`). Missing env vars / migrations are reported there.
+
+## SEO + AI
+- `/`, `/staff`, `/about`, `/information`, `/rules`, `/terms`, `/privacy` are now **rendered on the server from the live database** (`api/seo.ts`, `server/seoPage.ts`): real heading, hero text, About text, server IP/port, how-to-join steps, **the staff list (names + positions)** and the page text are in the HTML itself, plus JSON-LD (Organization with staff members, WebSite, GameServer). Crawlers and AI tools that do not run JavaScript see everything. The React app still loads on top and behaves exactly as before.
+- `/sitemap.xml` is generated live and lists only published pages. `/llms.txt` and `/llms-full.txt` give AI assistants a clean text summary (server details, staff, pages, latest posts).
+- **Only public content is ever used.** The renderer cannot read admin data (logs, users, emails, suggestions, feedback, drafts, maintenance text). `robots.txt` disallows `/admin` and `/api/` for all bots (AI bots included) and `/admin` also sends `noindex`.
+- Public pages are cached at the edge for 5 minutes, so an edit can take up to 5 minutes to show for crawlers (visitors see edits immediately in the app).
+- If the renderer ever fails it serves the normal app shell, never an error page.
+- Build now removes `dist/index.html` on purpose (the homepage comes from `api/seo.ts`); do not add static files for the dynamic routes.
+
+## Tests
+`npm test` now also runs `tests/seo-render.test.mjs`. 32 API tests, 7 markdown tests, 11 SEO tests and 5 render tests pass here. Three older tests were failing before this update (a stale caption limit, a fake-database NULL rule, and the 401 case above); they are fixed. `npm install`, `vite build` and a live Vercel/Supabase run were **not** possible in this environment: run `npm run ci` first.

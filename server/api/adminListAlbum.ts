@@ -11,6 +11,6 @@ export default authEndpoint(z.object({ status: z.enum(['Pending', 'Approved', 'D
   const rows = (must(r, 'album.adminList') ?? []) as AlbumRow[];
   const pm = await profileMap(rows.map((a) => a.uploader));
   return {
-    items: rows.map((a) => ({ id: a.id, imageUrl: a.image_url ?? '', caption: a.caption ?? '', submittedAt: a.submitted_at ?? '', status: a.status ?? 'Pending', uploader: (a.uploader && pm.get(a.uploader)) || null })),
+    items: rows.map((a) => ({ id: a.id, mediaType: a.media_type === 'video' ? 'video' : 'image', imageUrl: a.image_url ?? '', caption: a.caption ?? '', submittedAt: a.submitted_at ?? '', status: a.status ?? 'Pending', uploader: (a.uploader && pm.get(a.uploader)) || null })),
   };
 });

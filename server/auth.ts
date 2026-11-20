@@ -18,10 +18,21 @@ export interface AuthUser {
 export async function authenticate(authorization: string | undefined): Promise<AuthUser | null> {
   const m = /^Bearer\s+(.+)$/i.exec(authorization ?? '');
   if (!m) return null;
-  const { data, error } = await db().auth.getUser(m[1]);
+  let res: Awaited<ReturnType<ReturnType<typeof db>['auth']['getUser']>>;
+  try {
+    res = await db().auth.getUser(m[1]);
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    console.error('[auth] getUser threw:', e);
+    throw new ApiError('INTERNAL', 'Authentication service unavailable');
+  }
+  const { data, error } = res;
   if (error) {
-    const status = (error as { status?: number }).status;
-    if (typeof status === 'number' && status >= 400 && status < 500) return null;
+    // Supabase reports a bad / expired / malformed token in several shapes (some without an HTTP status), so only a
+    // genuine outage (5xx, network failure, timeout) is a server error. Everything else simply means "not logged in" (401).
+    const e = error as { status?: number; name?: string; message?: string };
+    const outage = (typeof e.status === 'number' && e.status >= 500) || e.name === 'AuthRetryableFetchError' || /fetch failed|network|timed? ?out|econn|enotfound|abort/i.test(e.message ?? '');
+    if (!outage) return null;
     console.error('[auth] getUser failed:', error);
     throw new ApiError('INTERNAL', 'Authentication service unavailable');
   }

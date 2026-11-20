@@ -17,7 +17,7 @@ export default function Layout() {
   const page = (
     // keyed boundary: an error on one page never sticks to the next one
     <ErrorBoundary key={loc.pathname}>
-      <Suspense fallback={<DelayedSpinner />}><Outlet /></Suspense>
+      <Suspense fallback={<DelayedSpinner />}><div className="page-enter"><Outlet /></div></Suspense>
     </ErrorBoundary>
   );
   if (bare) return <main>{page}</main>;

@@ -1,5 +1,5 @@
 import { lazy, useEffect, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Toaster } from '@project/components/ui/sonner';
 import { SiteProvider, useSite } from './lib/site';
@@ -44,7 +44,11 @@ function Gate({ children }: { children: ReactNode }) {
   const { settings, error, reload, me } = useSite();
   const { pathname } = useLocation(); // re-evaluate the maintenance exemption on every client-side navigation
   useEffect(() => { if (settings) markVisited(); }, [!!settings]);
-  if (error && !settings) return <ErrorPage full code={error.kind === 'network' ? '503' : '503'} message={error.kind === 'network' ? "We're having trouble connecting. Check your internet connection and retry." : undefined} onRetry={reload} />;
+  // Site settings could not be loaded and nothing is cached: say WHY (setup problem, network, server) instead of a bare error.
+  if (error && !settings) {
+    const setup = error.title === 'Setup needed';
+    return <ErrorPage full code="503" message={setup ? error.message : error.kind === 'network' ? "We're having trouble connecting. Check your internet connection and retry." : undefined} detail={!setup && error.kind === 'server' ? `Reference: ${error.correlationId}. If this keeps happening, open ${window.location.origin}/api/health (POST) or Admin > Overview > Setup check.` : undefined} onRetry={reload} />;
+  }
   if (!settings) return <div className="grid min-h-screen place-items-center"><Spinner /></div>;
   // Admin status comes from the server (getMe); everyone else sees the maintenance page.
   const exempt = pathname.startsWith('/admin') || pathname.startsWith('/login') || pathname.startsWith('/reset-password');
@@ -65,7 +69,10 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/information" element={<ContentPage slug="information" />} />
+                <Route path="/about" element={<ContentPage slug="about" />} />
+                <Route path="/rules" element={<ContentPage slug="rules" />} />
                 <Route path="/terms" element={<ContentPage slug="terms" />} />
+                <Route path="/privacy" element={<ContentPage slug="privacy" />} />
                 <Route path="/staff" element={<StaffPage />} />
                 <Route path="/partners" element={<PartnersPage />} />
                 <Route path="/announcements" element={<PostsPage kind="Announcement" />} />
@@ -80,7 +87,7 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/401" element={<ErrorPage code="401" />} />
                 <Route path="/403" element={<ErrorPage code="403" />} />
-                <Route path="/500" element={<ErrorPage code="500" />} />
+                <Route path="/500" element={<Navigate to="/" replace />} />
                 <Route path="/503" element={<ErrorPage code="503" />} />
                 <Route path="*" element={<ErrorPage code="404" />} />
               </Route>

@@ -69,7 +69,7 @@ export function must<T>(res: DbResult<T>, what: string): T {
     console.error(`[db] ${what}:`, res.error);
     const code = res.error.code ?? '';
     // Table/function missing = a SQL migration has not been run in Supabase yet. Say so instead of a blank 500.
-    if (isMissingRelation(res.error)) throw new ApiError('SETUP', `Database not set up yet (${what}). Run the SQL files in supabase/migrations (0001 to 0004) in the Supabase SQL Editor.`);
+    if (isMissingRelation(res.error)) throw new ApiError('SETUP', `Database not set up yet (${what}). Run the SQL files in supabase/migrations (0001 to 0006) in the Supabase SQL Editor.`);
     // 401/PGRST301/JWT problems here almost always mean SUPABASE_SERVICE_ROLE_KEY is wrong (for example the anon key was pasted).
     if (/invalid api key|jwt|permission denied/i.test(res.error.message ?? '') || code === '42501') throw new ApiError('SETUP', 'Database key rejected. Check that SUPABASE_SERVICE_ROLE_KEY in Vercel is the service_role key (not the anon key), then redeploy.');
     if (code === '23505') throw new ApiError('CONFLICT', 'That already exists.');
@@ -81,7 +81,8 @@ export function must<T>(res: DbResult<T>, what: string): T {
 
 /** True when the table/function is missing, i.e. a migration has not been applied yet. */
 export function isMissingRelation(err: { code?: string } | null | undefined): boolean {
-  return err?.code === '42P01' || err?.code === 'PGRST205' || err?.code === 'PGRST202';
+  // 42703 / PGRST204 = a column is missing (a newer migration has not been run yet)
+  return err?.code === '42P01' || err?.code === 'PGRST205' || err?.code === 'PGRST202' || err?.code === '42703' || err?.code === 'PGRST204';
 }
 
 /**

@@ -49,8 +49,16 @@ import adminListFeedback from './adminListFeedback.js';
 import adminDeleteFeedback from './adminDeleteFeedback.js';
 import latestPosts from './latestPosts.js';
 import health from './health.js';
+import toggleAlbumLike from './toggleAlbumLike.js';
+import listAlbumComments from './listAlbumComments.js';
+import addAlbumComment from './addAlbumComment.js';
+import deleteAlbumComment from './deleteAlbumComment.js';
 
 export const endpoints: Record<string, Endpoint> = {
+  toggleAlbumLike,
+  listAlbumComments,
+  addAlbumComment,
+  deleteAlbumComment,
   adminDeleteStaff,
   adminLinkStaff,
   adminListStaff,

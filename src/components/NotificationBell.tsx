@@ -24,7 +24,7 @@ export default function NotificationBell() {
 
   const load = useCallback(() => {
     latestPosts({}).then((d) => {
-      setItems(d.posts);
+      setItems(Array.isArray(d?.posts) ? d.posts : []);
       // first ever visit: start from "now" so a new visitor isn't greeted with 15 unread items
       if (!localStorage.getItem(KEY)) { const t = Date.now(); writeSeen(t); setSeen(t); }
     }).catch(() => undefined); // the bell is optional: a failed refresh must never break the page

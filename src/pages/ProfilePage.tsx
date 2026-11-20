@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@project/components/ui
 import PageHeader from '../components/PageHeader';
 import ImageUpload from '../components/ImageUpload';
 import SubmitImageDialog from '../components/SubmitImageDialog';
+import Media from '../components/Media';
 import RoleBadge from '../components/RoleBadge';
 import { EmptyState, GridSkeleton, InlineError } from '../components/States';
 import ConfirmDelete from '../components/ConfirmDelete';
@@ -79,7 +80,7 @@ function MyImages() {
       {loading ? <GridSkeleton count={3} /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.items.length ? <EmptyState icon={Images} title="No submissions yet" message="Share a screenshot from the server." /> : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{data.items.map((a) => (
           <div key={a.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-            <img src={a.imageUrl} alt={a.caption || 'Your submitted MistEra SMP screenshot'} className="aspect-video w-full object-cover" />
+            <Media type={a.mediaType} src={a.imageUrl} alt={a.caption || 'Your submitted MistEra SMP post'} className="aspect-video w-full object-cover" />
             <div className="flex items-center justify-between gap-2 p-4">
               <div className="min-w-0"><Badge variant={a.status === 'Approved' ? 'default' : a.status === 'Declined' ? 'destructive' : 'secondary'}>{a.status}</Badge><p className="mt-1 truncate text-xs text-muted-foreground">{a.caption || fmtDate(a.submittedAt)}</p></div>
               <ConfirmDelete title="Delete this image?" onConfirm={() => del(a.id)}><Button size="icon" variant="ghost" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>

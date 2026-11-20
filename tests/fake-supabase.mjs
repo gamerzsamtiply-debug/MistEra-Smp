@@ -22,7 +22,7 @@ export const rows = (t) => (state.tables[t] ??= []);
 const UNIQUE = { staff_members: ['profile_id', 'claim_hash'], profiles: ['user_id', 'username'], join_steps: ['slot'], content_pages: ['slug'], site_settings: ['key'] };
 const TIME = { profiles: 'joined_at', album_submissions: 'submitted_at', suggestions: 'submitted_at', activity_logs: 'logged_at', error_logs: 'logged_at' };
 const DEFAULTS = {
-  site_settings: { server_address: '', server_port: null, platform: '', server_status: 'Online', discord_url: '', vote_url: '', ticket_url: '', hero_tagline: '', intro_text: '', maintenance_mode: false, maintenance_message: '', hero_image: '', gallery_image_one: '', gallery_image_two: '', banner_image: '' },
+  site_settings: { server_address: '', server_port: null, platform: '', server_status: 'Online', discord_url: '', vote_url: '', ticket_url: '', hero_tagline: '', intro_text: '', maintenance_mode: false, maintenance_message: '', hero_image: '', gallery_image_one: '', gallery_image_two: '', banner_image: '', hero_title: '', about_heading: '', about_text: '', about_tagline: '', seo_description: '' },
   join_steps: { title: '', instructions: '', image_url: '', enabled: false, sort_order: 0 },
   profiles: { bio: '', avatar_url: '', role: 'Member' },
   staff_members: { avatar_url: '', position: 'Staff', profile_id: null, claim_hash: null, claim_expires: null },
@@ -42,7 +42,7 @@ const CHECKS = {
   suggestions: { status: ['Open', 'Under Review', 'Accepted', 'Declined'] },
   site_settings: { server_status: ['Online', 'Offline', 'Restarting'] },
   join_steps: { slot: [1, 2, 3, 4, 5] },
-  content_pages: { slug: ['information', 'terms'] },
+  content_pages: { slug: ['information', 'about', 'rules', 'terms', 'privacy'] },
 };
 const NOT_NULL = { posts: ['title', 'kind'], partners: ['name'], album_submissions: ['image_url'], suggestions: ['title'], profiles: ['user_id', 'username'], activity_logs: ['action'] };
 const UUID_COLS = new Set(['id', 'user_id', 'uploader', 'author']);
@@ -54,7 +54,7 @@ function validate(table, row, existing) {
   for (const c of NOT_NULL[table] ?? []) if (row[c] === null || row[c] === undefined) return err('23502', `null value in column "${c}"`);
   for (const [c, allowed] of Object.entries(CHECKS[table] ?? {})) if (row[c] !== undefined && row[c] !== null && !allowed.includes(row[c])) return err('23514', `check constraint on ${c}`);
   if (table === 'site_settings' && row.server_port != null && (row.server_port < 1 || row.server_port > 65535)) return err('23514', 'check constraint on server_port');
-  for (const c of UNIQUE[table] ?? []) if (rows(table).some((r) => r !== existing && r[c] === row[c])) return err('23505', `duplicate key value violates unique constraint on ${c}`);
+  for (const c of UNIQUE[table] ?? []) if (row[c] != null && rows(table).some((r) => r !== existing && r[c] === row[c])) return err('23505', `duplicate key value violates unique constraint on ${c}`);
   return null;
 }
 

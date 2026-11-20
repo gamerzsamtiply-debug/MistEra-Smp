@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "MistEra SMP official website — React + Vite frontend, Vercel serverless API, Supabase (Postgres, Auth, Storage).",
+  "description": "MistEra SMP official website \u2014 React + Vite frontend, Vercel serverless API, Supabase (Postgres, Auth, Storage).",
   "engines": {
     "node": "22.x"
   },
@@ -14,11 +14,12 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "test:api": "node tests/api.test.mjs",
-    "test": "npm run test:api && npm run test:markdown && npm run test:seo",
+    "test": "npm run test:api && npm run test:markdown && npm run test:seo && npm run test:seo-render",
     "test:markdown": "node tests/markdown.test.mjs",
     "ci": "npm run typecheck && npm test && npm run build",
     "assets:localize": "node scripts/localize-assets.mjs",
-    "test:seo": "node tests/seo.test.mjs"
+    "test:seo": "node tests/seo.test.mjs",
+    "test:seo-render": "node tests/seo-render.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

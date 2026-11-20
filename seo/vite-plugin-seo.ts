@@ -5,14 +5,14 @@
 //   dev / build   index.html            → homepage tags are injected (data-seo="…" on every managed tag)
 //   build         dist/<page>.html      → one copy of the built index.html per public route, with that route's tags
 //   build         dist/app-shell.html   → generic noindex shell, used by vercel.json for every other URL
-//   build         dist/sitemap.xml      → generated from ROUTES in src/lib/seo-config.ts
+//   build         dynamic routes        → NOT written; api/seo.ts renders them with live data (sitemap.xml and llms.txt too)
 //
 // The pages are still the normal React app: the same scripts/styles are referenced and nothing is rendered
 // differently for visitors. Vercel serves dist/<page>.html at /<page> (cleanUrls) before applying rewrites.
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
-import { ROUTES, SHELL_SEO, buildTags, resolveSeo, sitemapXml, canonicalFor, type ResolvedSeo, type Tag } from '../src/lib/seo-config.ts';
+import { ROUTES, SHELL_SEO, DYNAMIC_PATHS, buildTags, resolveSeo, canonicalFor, type ResolvedSeo, type Tag } from '../src/lib/seo-config.ts';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -63,9 +63,6 @@ export function seoPlugin(): Plugin {
       order: 'pre',
       handler(html) { return applyRoute(stripManaged(html), resolveSeo('/')); },
     },
-    generateBundle() {
-      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml() });
-    },
     closeBundle() {
       if (config.command !== 'build' || config.build.ssr) return;
       const dist = path.resolve(config.root, config.build.outDir);
@@ -73,23 +70,24 @@ export function seoPlugin(): Plugin {
       if (!fs.existsSync(indexFile)) return;
       const base = stripManaged(fs.readFileSync(indexFile, 'utf8'));
 
-      // homepage (dist/index.html) – rewritten so it is guaranteed to match ROUTES
-      const home = applyRoute(base, resolveSeo('/'));
-      assertSound('index.html', home, resolveSeo('/'));
-      fs.writeFileSync(indexFile, home);
-
+      // Dynamic pages (/, /staff, /about, /information, /rules, /terms, /privacy), /sitemap.xml and /llms.txt are rendered
+      // by api/seo.ts with live database content (see vercel.json rewrites). They must NOT exist as static files, because
+      // Vercel serves static files before rewrites. So dist/index.html is removed here (its content lives on in app-shell.html).
+      let staticCount = 0;
       for (const r of ROUTES) {
-        if (r.path === '/') continue;
+        if (DYNAMIC_PATHS.includes(r.path)) continue;
         const seo = resolveSeo(r.path);
         const html = applyRoute(base, seo);
         assertSound(`${r.path}.html`, html, seo);
         fs.writeFileSync(path.join(dist, `${r.path.slice(1)}.html`), html);
+        staticCount++;
       }
+      fs.rmSync(indexFile, { force: true });
 
       const shell = applyRoute(base, SHELL_SEO);
       assertSound('app-shell.html', shell, SHELL_SEO);
       fs.writeFileSync(path.join(dist, 'app-shell.html'), shell);
-      config.logger.info(`[seo] wrote ${ROUTES.length} indexable pages + app-shell.html + sitemap.xml (${canonicalFor('/')})`);
+      config.logger.info(`[seo] wrote ${staticCount} static pages + app-shell.html; ${DYNAMIC_PATHS.length} pages + sitemap.xml + llms.txt are rendered by api/seo.ts (${canonicalFor('/')})`);
     },
   };
 }

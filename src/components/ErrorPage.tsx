@@ -13,7 +13,7 @@ const CFG: Record<Code, { icon: LucideIcon; title: string; text: string }> = {
   maintenance: { icon: Wrench, title: 'Under Maintenance', text: '' },
 };
 
-export default function ErrorPage({ code, message, onRetry, full }: { code: Code; message?: string; onRetry?: () => void; full?: boolean }) {
+export default function ErrorPage({ code, message, detail, onRetry, full }: { code: Code; message?: string; detail?: string; onRetry?: () => void; full?: boolean }) {
   const nav = useSafeNavigate();
   const c = CFG[code];
   const retry = onRetry ?? (() => window.location.reload());
@@ -26,6 +26,7 @@ export default function ErrorPage({ code, message, onRetry, full }: { code: Code
         {code !== 'maintenance' && <p className="font-display text-5xl font-semibold text-primary">{code}</p>}
         <h1 className="mt-2 text-2xl font-semibold">{c.title}</h1>
         <p className="mt-3 text-muted-foreground">{message || c.text}</p>
+        {detail && <pre className="mx-auto mt-4 max-w-full overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-secondary/50 p-3 text-left text-xs text-muted-foreground">{detail}</pre>}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {code === '401' && <Button size="lg" onClick={() => loginWithRedirect()}><Lock className="mr-2 h-4 w-4" />Log in</Button>}
           {(code === '500' || code === '503') && <Button size="lg" onClick={retry}><RefreshCw className="mr-2 h-4 w-4" />{code === '503' ? 'Retry' : 'Try again'}</Button>}

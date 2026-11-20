@@ -19,7 +19,7 @@ export default function Footer() {
         <div>
           <p className="mb-3 text-sm font-semibold">Explore</p>
           <ul className="space-y-2 text-sm">
-            {[['/information', 'Information'], ['/staff', 'Staff'], ['/partners', 'Partners'], ['/announcements', 'Announcements'], ['/updates', 'Updates'], ['/album', 'Community Album']].map(([to, l]) => <li key={to}><Link className={linkCls} to={to}>{l}</Link></li>)}
+            {[['/about', 'About us'], ['/information', 'Information'], ['/rules', 'Rules'], ['/staff', 'Staff'], ['/partners', 'Partners'], ['/announcements', 'Announcements'], ['/updates', 'Updates'], ['/album', 'Community Album']].map(([to, l]) => <li key={to}><Link className={linkCls} to={to}>{l}</Link></li>)}
           </ul>
         </div>
         <div>
@@ -30,6 +30,7 @@ export default function Footer() {
             <li><button className={linkCls} onClick={() => openHelp(settings?.ticketUrl)}>Help / Support ticket</button></li>
             <li><Link className={linkCls} to="/suggestions">Suggestions</Link></li>
             <li><Link className={linkCls} to="/terms">Terms of Service</Link></li>
+            <li><Link className={linkCls} to="/privacy">Privacy Policy</Link></li>
           </ul>
         </div>
       </div>

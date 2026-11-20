@@ -154,6 +154,17 @@ export function cleanUploadedImageUrl(v: string | undefined, allowUnchanged?: st
   return s;
 }
 
+const VIDEO_EXT = /\.(mp4|webm|mov)$/i;
+const IMAGE_EXT = /\.(png|jpe?g|webp|gif)$/i;
+
+/** Like cleanUploadedImageUrl, but for album posts that can be a photo or a video; the file type must match. */
+export function cleanUploadedMediaUrl(v: string | undefined, kind: 'image' | 'video'): string {
+  const s = cleanUploadedImageUrl(v);
+  if (!s) return '';
+  if (!(kind === 'video' ? VIDEO_EXT : IMAGE_EXT).test(s.split('?')[0])) throw fail('BAD_REQUEST', 'The uploaded file does not match its type. Please upload it again.');
+  return s;
+}
+
 export async function getSettingsRow(): Promise<SettingsRow> {
   const r = await db().from('site_settings').select('*').eq('key', 'main').maybeSingle();
   const existing = must(r, 'site_settings.get') as SettingsRow | null;
@@ -187,8 +198,20 @@ export function settingsOut(s: SettingsRow) {
     galleryImageOne: s.gallery_image_one ?? '',
     galleryImageTwo: s.gallery_image_two ?? '',
     bannerImage: s.banner_image ?? '',
+    heroTitle: s.hero_title ?? '',
+    aboutHeading: s.about_heading ?? '',
+    aboutText: s.about_text ?? '',
+    aboutTagline: s.about_tagline ?? '',
+    seoDescription: s.seo_description ?? '',
   };
 }
+
+/** Editable content pages (Admin > Pages). The same list is enforced by the content_pages_slug_check constraint (migration 0006). */
+export const PAGE_SLUGS = ['information', 'about', 'rules', 'terms', 'privacy'] as const;
+export type PageSlug = (typeof PAGE_SLUGS)[number];
+export const PAGE_TITLES: Record<PageSlug, string> = {
+  information: 'Server Information', about: 'About Us', rules: 'Server Rules', terms: 'Terms of Service', privacy: 'Privacy Policy',
+};
 
 /** Finds one row by primary key. Non-UUID ids simply "don't exist" (instead of a Postgres cast error). */
 export async function findRow<T>(table: string, id: string): Promise<T | null> {

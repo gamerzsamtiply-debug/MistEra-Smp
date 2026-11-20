@@ -11,9 +11,14 @@ interface SiteCtx { settings: Settings | null; steps: Step[]; me: Me | null; meL
 const Ctx = createContext<SiteCtx | null>(null);
 
 // The last known site settings are kept so a return visit paints immediately; they are refreshed in the background.
-const CACHE_KEY = 'mistera-site-v1';
+const CACHE_KEY = 'mistera-site-v2';
 function readCache(): GetSiteOutputType | null {
-  try { const v = localStorage.getItem(CACHE_KEY); return v ? (JSON.parse(v) as GetSiteOutputType) : null; } catch { return null; }
+  try {
+    const v = localStorage.getItem(CACHE_KEY);
+    const d = v ? (JSON.parse(v) as GetSiteOutputType) : null;
+    // only trust a cache that has the expected shape; anything else is dropped and re-fetched
+    return d && typeof d === 'object' && d.settings && typeof d.settings === 'object' && Array.isArray(d.steps) ? d : null;
+  } catch { return null; }
 }
 function writeCache(d: GetSiteOutputType) {
   try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch { /* storage unavailable */ }
@@ -28,7 +33,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(() => {
     setError(null);
-    run('Load site', () => getSite({}), { silent: true }).then((d) => { if (d) { setSite(d); writeCache(d); } }).catch((e) => setError(isAppError(e) ? e : null));
+    run('Load site', () => getSite({}), { silent: true }).then((d) => { if (d && d.settings) { setSite({ settings: d.settings, steps: Array.isArray(d.steps) ? d.steps : [] }); writeCache(d); } }).catch((e) => setError(isAppError(e) ? e : null));
   }, []);
   const reloadMe = useCallback(() => {
     if (!user) { setMe(null); setMeLoading(false); return; }

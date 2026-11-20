@@ -6,17 +6,60 @@
   "functions": {
     "api/[name].ts": {
       "maxDuration": 15
+    },
+    "api/seo.ts": {
+      "maxDuration": 15
     }
   },
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|images/|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/",
+      "destination": "/api/seo?p=home"
+    },
+    {
+      "source": "/staff",
+      "destination": "/api/seo?p=staff"
+    },
+    {
+      "source": "/about",
+      "destination": "/api/seo?p=about"
+    },
+    {
+      "source": "/information",
+      "destination": "/api/seo?p=information"
+    },
+    {
+      "source": "/rules",
+      "destination": "/api/seo?p=rules"
+    },
+    {
+      "source": "/terms",
+      "destination": "/api/seo?p=terms"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/api/seo?p=privacy"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo?p=sitemap"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/seo?p=llms"
+    },
+    {
+      "source": "/llms-full.txt",
+      "destination": "/api/seo?p=llms-full"
+    },
+    {
+      "source": "/((?!api/|assets/|images/|fonts/|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)",
       "destination": "/app-shell"
     }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/((?!seo$).*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -124,15 +167,6 @@
       ]
     },
     {
-      "source": "/500",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, follow"
-        }
-      ]
-    },
-    {
       "source": "/503",
       "headers": [
         {
@@ -180,7 +214,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
         }
       ]
     }

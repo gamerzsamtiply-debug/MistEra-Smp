@@ -10,7 +10,7 @@ import { useLoad } from '../../lib/useLoad';
 import { run } from '../../lib/errors';
 import Field from './Field';
 
-type Pg = { slug: 'information' | 'terms'; title: string; content: string; published: boolean };
+type Pg = { slug: 'information' | 'about' | 'rules' | 'terms' | 'privacy'; title: string; content: string; published: boolean };
 
 function PageEditor({ page, onSaved }: { page: Pg; onSaved: () => void }) {
   const [f, setF] = useState(page);
@@ -37,5 +37,10 @@ export default function PagesTab() {
   const { data, error, loading, reload } = useLoad('Load pages', () => adminListPages({}));
   if (loading) return <Spinner />;
   if (error) return <InlineError error={error} onRetry={reload} />;
-  return <div className="space-y-6">{(data?.pages ?? []).map((p) => <PageEditor key={p.slug} page={p as Pg} onSaved={reload} />)}</div>;
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Each page has its own address (/about, /information, /rules, /terms, /privacy). A page only appears on the website, in Google and for AI assistants once it is <strong>Published</strong> and has text.</p>
+      {(data?.pages ?? []).map((p: Pg) => <div key={p.slug}><p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">/{p.slug}</p><PageEditor page={p} onSaved={reload} /></div>)}
+    </div>
+  );
 }

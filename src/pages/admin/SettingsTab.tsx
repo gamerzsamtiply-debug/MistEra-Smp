@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { adminGetSettings, adminSaveSettings, type AdminSaveSettingsInputType } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
 import { Input } from '@project/components/ui/input';
@@ -33,7 +34,7 @@ export default function SettingsTab() {
     (['discordUrl', 'voteUrl', 'ticketUrl'] as const).forEach((k) => { if (!urlOk(f[k])) e[k] = 'Must start with http:// or https://'; });
     setErrs(e); if (Object.keys(e).length) return;
     setBusy(true);
-    try { await run('Server settings update', () => adminSaveSettings(f), { success: 'Server settings saved', failTitle: 'Failed to save server settings' }); site.reload(); } catch { /* kept */ } finally { setBusy(false); }
+    try { const r = await run('Server settings update', () => adminSaveSettings(f), { success: 'Server settings saved', failTitle: 'Failed to save server settings' }); if (r?.needsMigration) toast.warning('Saved, but hero/about/SEO text was not stored', { description: 'Run supabase/migrations/0006_site_content.sql in the Supabase SQL Editor, then save again.' }); site.reload(); } catch { /* kept */ } finally { setBusy(false); }
   };
   const sec = 'rounded-2xl border border-border bg-card p-6 space-y-5';
   return (
@@ -54,9 +55,17 @@ export default function SettingsTab() {
           <Field label="Discord Ticket URL (Help)" error={errs.ticketUrl}><Input value={f.ticketUrl} onChange={(e) => set('ticketUrl', e.target.value)} placeholder="https://discord.com/channels/..." /></Field>
         </div>
       </section>
-      <section className={sec}><h3 className="text-lg font-semibold">Homepage content</h3>
-        <Field label="Hero tagline"><Input value={f.heroTagline} onChange={(e) => set('heroTagline', e.target.value)} /></Field>
-        <Field label="Server introduction"><Textarea rows={4} value={f.introText} onChange={(e) => set('introText', e.target.value)} /></Field>
+      <section className={sec}><div><h3 className="text-lg font-semibold">Homepage hero</h3><p className="text-sm text-muted-foreground">The big heading and the description under it. Leave empty to use the default text.</p></div>
+        <Field label="Hero title (main heading)"><Input value={f.heroTitle ?? ''} maxLength={200} onChange={(e) => set('heroTitle', e.target.value)} placeholder="Bangladesh's Bedrock SMP. Online 24/7." /></Field>
+        <Field label="Hero description"><Textarea rows={2} value={f.heroTagline} maxLength={500} onChange={(e) => set('heroTagline', e.target.value)} /></Field>
+      </section>
+      <section className={sec}><div><h3 className="text-lg font-semibold">Homepage "About" section</h3><p className="text-sm text-muted-foreground">Shown below the hero. Separate paragraphs with an empty line.</p></div>
+        <Field label="Heading"><Input value={f.aboutHeading ?? ''} maxLength={200} onChange={(e) => set('aboutHeading', e.target.value)} placeholder="Private by design. Built together." /></Field>
+        <Field label="Text"><Textarea rows={7} value={f.aboutText ?? ''} maxLength={5000} onChange={(e) => set('aboutText', e.target.value)} /></Field>
+        <Field label="Closing line (highlighted)"><Input value={f.aboutTagline ?? ''} maxLength={300} onChange={(e) => set('aboutTagline', e.target.value)} placeholder="Eras End. MistEra Never Fades." /></Field>
+      </section>
+      <section className={sec}><div><h3 className="text-lg font-semibold">Search & AI description</h3><p className="text-sm text-muted-foreground">Used as the homepage description for Google, Discord/Facebook previews and AI assistants. Aim for 120-160 characters. Only public website text is ever shared with them, never anything from this panel.</p></div>
+        <Field label="Homepage SEO description" hint={`${(f.seoDescription ?? '').length}/160 characters`}><Textarea rows={3} value={f.seoDescription ?? ''} maxLength={300} onChange={(e) => set('seoDescription', e.target.value)} /></Field>
       </section>
       <section className={sec}><div><h3 className="text-lg font-semibold">Homepage images</h3><p className="text-sm text-muted-foreground">Upload your own MistEra screenshots. Leave empty to use the default image.</p></div>
         <div className="grid gap-4 md:grid-cols-2">

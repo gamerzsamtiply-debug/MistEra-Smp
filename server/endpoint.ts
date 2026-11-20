@@ -9,6 +9,8 @@ export interface RequestContext {
 export interface Endpoint {
   /** When true the request must carry a valid Supabase access token. */
   authenticated: boolean;
+  /** When true a valid token is used if present (to personalise the answer), but a missing/invalid one is fine. */
+  optionalAuth?: boolean;
   input: z.ZodTypeAny;
   run: (input: unknown, user: AuthUser | null, ctx: RequestContext) => Promise<unknown>;
 }
@@ -28,4 +30,9 @@ export function authEndpoint<S extends z.ZodTypeAny>(input: S, run: (a: { input:
       return run({ input: i as z.infer<S>, user, ip: ctx.ip });
     },
   };
+}
+
+/** A public endpoint that also learns who is asking when a valid login token is sent (e.g. "did I like this?"). */
+export function optionalAuthEndpoint<S extends z.ZodTypeAny>(input: S, run: (a: { input: z.infer<S>; user: AuthUser | null; ip: string }) => Promise<unknown>): Endpoint {
+  return { authenticated: false, optionalAuth: true, input, run: (i, user, ctx) => run({ input: i as z.infer<S>, user, ip: ctx.ip }) };
 }
