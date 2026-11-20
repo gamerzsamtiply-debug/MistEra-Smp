@@ -75,12 +75,18 @@ export default function LoginPage() {
   const title = mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Reset password';
 
   return (
-    <div className="grid min-h-[70vh] place-items-center px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8">
+    <div className="dark auth">
+      <div className="auth-top">
+        <Link to="/" className="flex items-center gap-2.5" aria-label="MistEra SMP home">
+          <img src={LOGO_MARK} alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+          <span className="font-display text-[15px] font-semibold tracking-tight">MISTERA SMP</span>
+        </Link>
+      </div>
+      <div className="auth-stage">
+      <div className="auth-card">
         <div className="mb-6 text-center">
-          <img src={LOGO_MARK} alt="MistEra SMP logo" width={48} height={48} className="mx-auto h-12 w-12 object-contain" />
-          <h1 className="mt-4 text-2xl font-bold">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-2xl font-semibold">{title}</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
             {mode === 'login' && 'Welcome back to MistEra SMP.'}
             {mode === 'signup' && 'Join the community to submit images and suggestions.'}
             {mode === 'forgot' && "Enter your email and we'll send you a reset link."}
@@ -88,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         {notice ? (
-          <div className="flex items-start gap-3 rounded-xl border border-border bg-secondary/50 p-4 text-sm"><MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p>{notice}</p></div>
+          <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/50 p-4 text-sm"><MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p>{notice}</p></div>
         ) : (
           <div className="space-y-4">
             {mode !== 'forgot' && (
@@ -122,6 +128,7 @@ export default function LoginPage() {
           {mode === 'forgot' && <p><button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMode('login')}>Back to sign in</button></p>}
           <p><Link to="/terms" className="hover:text-foreground hover:underline">Terms of Service</Link></p>
         </div>
+      </div>
       </div>
     </div>
   );

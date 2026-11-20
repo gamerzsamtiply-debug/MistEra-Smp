@@ -23,7 +23,7 @@ export function GridSkeleton({ count = 6, className = 'h-56' }: { count?: number
 export function EmptyState({ icon: Icon, title, message }: { icon: LucideIcon; title: string; message: string }) {
   return (
     <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-14 text-center">
-      <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-secondary"><Icon className="h-6 w-6 text-primary" /></div>
+      <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-secondary"><Icon className="h-6 w-6 text-primary" /></div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">{message}</p>
     </div>
@@ -36,7 +36,7 @@ export function InlineError({ error, onRetry }: { error: AppError; onRetry?: () 
   const Icon = ICONS[error.kind] ?? AlertTriangle;
   return (
     <div className="flex flex-col items-center rounded-2xl border border-destructive/30 bg-destructive/5 px-6 py-12 text-center" role="alert">
-      <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-destructive/15"><Icon className="h-6 w-6 text-destructive" /></div>
+      <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-destructive/15"><Icon className="h-6 w-6 text-destructive" /></div>
       <h3 className="text-lg font-semibold">{error.title}</h3>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">{error.message}</p>
       <div className="mt-5 flex gap-2">

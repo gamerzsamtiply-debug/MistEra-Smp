@@ -4,30 +4,32 @@ import { LOGO_FULL } from '../lib/brand';
 import WhitelistNotice from './WhitelistNotice';
 import { openHelp } from './Navbar';
 
+const linkCls = 'text-muted-foreground transition-colors hover:text-foreground';
+
 export default function Footer() {
   const { settings } = useSite();
   return (
-    <footer className="mt-24 border-t border-border bg-card/40">
-      <div className="container mx-auto grid gap-10 px-4 py-12 md:grid-cols-[1.3fr_1fr_1fr]">
+    <footer className="mt-8 border-t border-border">
+      <div className="wrap grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div className="space-y-4">
-          <img src={LOGO_FULL} alt="MistEra SMP logo" loading="lazy" decoding="async" className="logo-plate h-24 w-auto object-contain" />
+          <img src={LOGO_FULL} alt="MistEra SMP logo" loading="lazy" decoding="async" className="logo-plate h-16 w-auto object-contain" />
           <p className="max-w-sm text-sm text-muted-foreground">A Bangladesh-based, 24/7 Minecraft Bedrock survival community.</p>
           <WhitelistNotice compact />
         </div>
         <div>
-          <p className="mb-3 font-display font-semibold ">Explore</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {[['/information', 'Information'], ['/staff', 'Staff'], ['/partners', 'Partners'], ['/announcements', 'Announcements'], ['/updates', 'Updates'], ['/album', 'Community Album']].map(([to, l]) => <li key={to}><Link className="hover:text-foreground" to={to}>{l}</Link></li>)}
+          <p className="mb-3 text-sm font-semibold">Explore</p>
+          <ul className="space-y-2 text-sm">
+            {[['/information', 'Information'], ['/staff', 'Staff'], ['/partners', 'Partners'], ['/announcements', 'Announcements'], ['/updates', 'Updates'], ['/album', 'Community Album']].map(([to, l]) => <li key={to}><Link className={linkCls} to={to}>{l}</Link></li>)}
           </ul>
         </div>
         <div>
-          <p className="mb-3 font-display font-semibold ">Community</p>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            {settings?.discordUrl && <li><a className="hover:text-foreground" href={settings.discordUrl} target="_blank" rel="noreferrer">Discord</a></li>}
-            {settings?.voteUrl && <li><a className="hover:text-foreground" href={settings.voteUrl} target="_blank" rel="noreferrer">Vote for us</a></li>}
-            <li><button className="hover:text-foreground" onClick={() => openHelp(settings?.ticketUrl)}>Help / Support ticket</button></li>
-            <li><Link className="hover:text-foreground" to="/suggestions">Suggestions</Link></li>
-            <li><Link className="hover:text-foreground" to="/terms">Terms of Service</Link></li>
+          <p className="mb-3 text-sm font-semibold">Community</p>
+          <ul className="space-y-2 text-sm">
+            {settings?.discordUrl && <li><a className={linkCls} href={settings.discordUrl} target="_blank" rel="noreferrer">Discord</a></li>}
+            {settings?.voteUrl && <li><a className={linkCls} href={settings.voteUrl} target="_blank" rel="noreferrer">Vote for us</a></li>}
+            <li><button className={linkCls} onClick={() => openHelp(settings?.ticketUrl)}>Help / Support ticket</button></li>
+            <li><Link className={linkCls} to="/suggestions">Suggestions</Link></li>
+            <li><Link className={linkCls} to="/terms">Terms of Service</Link></li>
           </ul>
         </div>
       </div>

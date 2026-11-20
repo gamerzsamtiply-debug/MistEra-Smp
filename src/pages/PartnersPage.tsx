@@ -16,9 +16,9 @@ export function PartnerCard({ p }: { p: Partner }) {
     <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-6">
       <div className="flex items-center gap-4">
         <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary">
-          {p.logoUrl ? <img src={p.logoUrl} alt={`${p.name} logo`} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="font-display text-xl font-bold text-primary">{p.name.slice(0, 1)}</span>}
+          {p.logoUrl ? <img src={p.logoUrl} alt={`${p.name} logo`} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="font-display text-xl font-semibold text-primary">{p.name.slice(0, 1)}</span>}
         </div>
-        <div className="min-w-0"><h2 className="truncate font-bold">{p.name}</h2><Badge variant="secondary" className="mt-1">{p.category}</Badge></div>
+        <div className="min-w-0"><h2 className="truncate font-semibold">{p.name}</h2><Badge variant="secondary" className="mt-1">{p.category}</Badge></div>
       </div>
       <p className="mt-4 flex-1 text-sm text-muted-foreground line-clamp-4">{p.description}</p>
       {p.websiteUrl && <a href={p.websiteUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">Visit <ExternalLink className="h-3.5 w-3.5" /></a>}

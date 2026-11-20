@@ -20,11 +20,11 @@ export default function ErrorPage({ code, message, onRetry, full }: { code: Code
   return (
     <div className={`relative grid place-items-center overflow-hidden px-4 ${full ? 'min-h-screen' : 'min-h-[70vh]'}`}>
       <div className="max-w-lg text-center">
-        <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-3xl border border-border bg-card">
-          <c.icon className="h-9 w-9 text-primary" />
+        <div className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-xl border border-border bg-card">
+          <c.icon className="h-7 w-7 text-primary" />
         </div>
-        {code !== 'maintenance' && <p className="font-display text-7xl font-bold text-gradient">{code}</p>}
-        <h1 className="mt-2 text-3xl font-bold">{c.title}</h1>
+        {code !== 'maintenance' && <p className="font-display text-5xl font-semibold text-primary">{code}</p>}
+        <h1 className="mt-2 text-2xl font-semibold">{c.title}</h1>
         <p className="mt-3 text-muted-foreground">{message || c.text}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           {code === '401' && <Button size="lg" onClick={() => loginWithRedirect()}><Lock className="mr-2 h-4 w-4" />Log in</Button>}

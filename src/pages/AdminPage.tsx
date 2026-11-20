@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { LayoutDashboard, Server, ListOrdered, FileText, Megaphone, Sparkles, Users, UserRound, Handshake, Images, Lightbulb, ScrollText, Bug } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, LayoutDashboard, Server, ListOrdered, FileText, Megaphone, Sparkles, Users, UserRound, Handshake, Images, Lightbulb, ScrollText, Bug } from 'lucide-react';
 import { cn } from '@project/components/lib/utils';
 import { useSite } from '../lib/site';
+import { LOGO_MARK } from '../lib/brand';
+import ThemeToggle from '../components/ThemeToggle';
 import Overview from './admin/Overview';
 import SettingsTab from './admin/SettingsTab';
 import StepsTab from './admin/StepsTab';
@@ -34,22 +37,46 @@ export default function AdminPage() {
   const { me } = useSite();
   const [tab, setTab] = useState('overview');
   const cur = TABS.find((t) => t.id === tab) ?? TABS[0];
+  const item = (t: (typeof TABS)[number]) => (
+    <button key={t.id} type="button" onClick={() => setTab(t.id)} title={t.label} aria-label={t.label} aria-current={tab === t.id ? 'page' : undefined} className="rail-link">
+      <t.icon /><span className="rail-label">{t.label}</span>
+    </button>
+  );
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6"><p className="text-xs font-semibold uppercase text-primary">Admin - @{me?.profile.username}</p><h1 className="mt-1 text-3xl font-bold">Admin Panel</h1></div>
-      <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
-        <nav className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={cn('relative flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors', tab === t.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground')}>
-              {tab === t.id && <span className="absolute inset-0 rounded-lg bg-secondary" />}
-              <t.icon className="relative h-4 w-4" /><span className="relative">{t.label}</span>
-            </button>
-          ))}
-        </nav>
-        <section key={tab} className="min-w-0">
-          <h2 className="mb-5 text-xl font-bold">{cur.label}</h2>
-          {cur.el}
-        </section>
+    <div className="dash">
+      {/* Laptops and desktops: compact icon sidebar (labels on wide screens) */}
+      <aside className="dash-rail" aria-label="Admin sections">
+        <div className="mb-4 flex h-10 w-full items-center justify-center min-[1360px]:justify-start min-[1360px]:px-2">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Back to MistEra SMP">
+            <img src={LOGO_MARK} alt="" width={36} height={36} className="logo-plate h-9 w-9 object-contain" />
+            <span className="rail-label font-display text-[15px] font-semibold tracking-tight">Admin Panel</span>
+          </Link>
+        </div>
+        <nav className="flex w-full flex-col items-center gap-1 min-[1360px]:items-stretch">{TABS.map(item)}</nav>
+        <div className="mt-auto flex w-full flex-col items-center gap-1 pt-4 min-[1360px]:items-stretch">
+          <Link to="/" title="Back to site" aria-label="Back to site" className="rail-link"><ArrowLeft /><span className="rail-label">Back to site</span></Link>
+        </div>
+      </aside>
+
+      {/* Tablets and phones: scrollable section strip */}
+      <nav className="dash-strip" aria-label="Admin sections">
+        <Link to="/" title="Back to site" aria-label="Back to site" className="rail-link"><ArrowLeft /></Link>
+        {TABS.map(item)}
+      </nav>
+
+      <div className="dash-main">
+        <div className="dash-content">
+          <header className="mb-5 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm text-muted-foreground">Admin Panel - @{me?.profile.username}</p>
+              <h1 className="mt-1 text-2xl font-semibold md:text-3xl">{cur.label}</h1>
+            </div>
+            <ThemeToggle />
+          </header>
+          <section key={tab} className="dash-panel min-w-0">
+            {cur.el}
+          </section>
+        </div>
       </div>
     </div>
   );

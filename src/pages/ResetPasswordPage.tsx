@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@project/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@project/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Spinner } from '../components/States';
+import { LOGO_MARK } from '../lib/brand';
 
 export default function ResetPasswordPage() {
   const { user, isLoading } = useAuth();
@@ -32,11 +33,18 @@ export default function ResetPasswordPage() {
 
   if (isLoading) return <Spinner />;
   return (
-    <div className="grid min-h-[70vh] place-items-center px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8">
+    <div className="dark auth">
+      <div className="auth-top">
+        <Link to="/" className="flex items-center gap-2.5" aria-label="MistEra SMP home">
+          <img src={LOGO_MARK} alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+          <span className="font-display text-[15px] font-semibold tracking-tight">MISTERA SMP</span>
+        </Link>
+      </div>
+      <div className="auth-stage">
+      <div className="auth-card">
         <div className="mb-6 text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-border bg-secondary"><KeyRound className="h-6 w-6 text-primary" /></div>
-          <h1 className="mt-4 text-3xl font-bold">Choose a new password</h1>
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-border bg-secondary"><KeyRound className="h-5 w-5 text-primary" /></div>
+          <h1 className="mt-4 text-2xl font-semibold">Choose a new password</h1>
         </div>
         {!user ? (
           <div className="space-y-4 text-center text-sm text-muted-foreground">
@@ -51,6 +59,7 @@ export default function ResetPasswordPage() {
             <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Update password</Button>
           </form>
         )}
+      </div>
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ function StepEditor({ step, onSaved }: { step: StepT; onSaved: () => void }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2"><h3 className="text-lg font-bold">Step slot {f.slot}</h3>{req ? <Badge><Lock className="mr-1 h-3 w-3" />Required</Badge> : <Badge variant="secondary">Optional{f.enabled ? '' : ' - hidden from visitors'}</Badge>}</div>
+        <div className="flex items-center gap-2"><h3 className="text-lg font-semibold">Step slot {f.slot}</h3>{req ? <Badge><Lock className="mr-1 h-3 w-3" />Required</Badge> : <Badge variant="secondary">Optional{f.enabled ? '' : ' - hidden from visitors'}</Badge>}</div>
         {!req && <div className="flex items-center gap-4"><div className="flex items-center gap-2 text-sm">Position<Select value={String(f.sortOrder)} onValueChange={(v) => setF({ ...f, sortOrder: Number(v) })}><SelectTrigger className="w-20"><SelectValue /></SelectTrigger><SelectContent>{[2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent></Select></div><label className="flex items-center gap-2 text-sm">Enabled<Switch checked={f.enabled} onCheckedChange={(v) => setF({ ...f, enabled: v })} /></label></div>}
       </div>
       <div className="grid gap-4 md:grid-cols-[1fr_260px]">

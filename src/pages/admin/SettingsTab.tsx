@@ -38,7 +38,7 @@ export default function SettingsTab() {
   const sec = 'rounded-2xl border border-border bg-card p-6 space-y-5';
   return (
     <div className="space-y-6">
-      <section className={sec}><h3 className="text-lg font-bold">Server</h3>
+      <section className={sec}><h3 className="text-lg font-semibold">Server</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Server IP / Address" error={errs.serverAddress}><Input value={f.serverAddress} onChange={(e) => set('serverAddress', e.target.value)} /></Field>
           <Field label="Server Port" error={errs.serverPort}><Input type="number" value={f.serverPort} onChange={(e) => set('serverPort', Number(e.target.value))} /></Field>
@@ -47,25 +47,25 @@ export default function SettingsTab() {
         </div>
         <WhitelistNotice compact />
       </section>
-      <section className={sec}><h3 className="text-lg font-bold">Links & Help</h3>
+      <section className={sec}><h3 className="text-lg font-semibold">Links & Help</h3>
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Discord invitation URL" error={errs.discordUrl}><Input value={f.discordUrl} onChange={(e) => set('discordUrl', e.target.value)} placeholder="https://discord.gg/..." /></Field>
           <Field label="Voting URL" error={errs.voteUrl}><Input value={f.voteUrl} onChange={(e) => set('voteUrl', e.target.value)} placeholder="https://..." /></Field>
           <Field label="Discord Ticket URL (Help)" error={errs.ticketUrl}><Input value={f.ticketUrl} onChange={(e) => set('ticketUrl', e.target.value)} placeholder="https://discord.com/channels/..." /></Field>
         </div>
       </section>
-      <section className={sec}><h3 className="text-lg font-bold">Homepage content</h3>
+      <section className={sec}><h3 className="text-lg font-semibold">Homepage content</h3>
         <Field label="Hero tagline"><Input value={f.heroTagline} onChange={(e) => set('heroTagline', e.target.value)} /></Field>
         <Field label="Server introduction"><Textarea rows={4} value={f.introText} onChange={(e) => set('introText', e.target.value)} /></Field>
       </section>
-      <section className={sec}><div><h3 className="text-lg font-bold">Homepage images</h3><p className="text-sm text-muted-foreground">Upload your own MistEra screenshots. Leave empty to use the default image.</p></div>
+      <section className={sec}><div><h3 className="text-lg font-semibold">Homepage images</h3><p className="text-sm text-muted-foreground">Upload your own MistEra screenshots. Leave empty to use the default image.</p></div>
         <div className="grid gap-4 md:grid-cols-2">
           {([['heroImage', 'Hero background'], ['galleryImageOne', 'Gallery - large image'], ['galleryImageTwo', 'Gallery - small image'], ['bannerImage', 'Join banner background']] as const).map(([k, l]) => (
             <Field key={k} label={l}><ImageUpload value={f[k] ?? ''} onChange={(u) => set(k, u)} label={`Upload ${l.toLowerCase()}`} /></Field>
           ))}
         </div>
       </section>
-      <section className={sec}><h3 className="text-lg font-bold">Maintenance mode</h3>
+      <section className={sec}><h3 className="text-lg font-semibold">Maintenance mode</h3>
         <div className="flex items-center justify-between gap-4 rounded-xl bg-secondary/50 p-4"><div><p className="font-medium">Enable maintenance mode</p><p className="text-sm text-muted-foreground">Visitors see the maintenance page. Owner and Admins can still use the site.</p></div><Switch checked={f.maintenanceMode} onCheckedChange={(v) => set('maintenanceMode', v)} /></div>
         <Field label="Maintenance message"><Textarea rows={3} value={f.maintenanceMessage} onChange={(e) => set('maintenanceMessage', e.target.value)} /></Field>
       </section>

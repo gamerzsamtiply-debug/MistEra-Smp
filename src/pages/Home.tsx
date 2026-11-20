@@ -34,28 +34,27 @@ const STATUS_DOT: Record<string, string> = { Online: 'bg-emerald-400', Offline: 
 
 function Hero({ s }: { s: Settings | null }) {
   return (
-    <section className="relative isolate -mt-16 flex min-h-[86vh] items-center overflow-hidden pt-16">
+    <section className="hero">
       {/* decorative background; it is the largest image above the fold, so tell the browser to fetch it first */}
-      <img src={img(s, 'heroImage')} alt="" decoding="async" {...HIGH_PRIORITY} className="absolute inset-0 -z-10 h-full w-full object-cover" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background/90 via-background/75 to-background dark:from-background/80 dark:via-background/40" />
-      <div className="container mx-auto flex flex-col items-center px-4 py-16 text-center">
-        <img src={LOGO_FULL} alt="MistEra SMP logo" decoding="async" {...HIGH_PRIORITY} className="logo-plate w-[min(78vw,380px)] h-auto object-contain" />
-        {s && <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm">
-          <span className={cn('h-2.5 w-2.5 rounded-full', STATUS_DOT[s.serverStatus] ?? 'bg-muted')} />Server {s.serverStatus.toLowerCase()} - {s.platform || 'Minecraft Bedrock'}
+      <img src={img(s, 'heroImage')} alt="" decoding="async" {...HIGH_PRIORITY} className="hero-img" />
+      <div className="wrap hero-inner">
+        <img src={LOGO_FULL} alt="MistEra SMP logo" decoding="async" {...HIGH_PRIORITY} className="logo-plate h-14 w-auto max-w-[70%] object-contain md:h-16" />
+        {s && <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium">
+          <span className={cn('h-2 w-2 rounded-full', STATUS_DOT[s.serverStatus] ?? 'bg-muted')} />Server {s.serverStatus.toLowerCase()} - {s.platform || 'Minecraft Bedrock'}
         </p>}
-        <h1 className="mt-6 max-w-4xl text-4xl font-bold leading-tight md:text-7xl"><span className="sr-only">MistEra SMP - </span>Bangladesh's Bedrock SMP. <em>Online 24/7.</em></h1>
-        <p className="mt-5 max-w-xl text-lg text-foreground/80">{s?.heroTagline}</p>
-        <div className="mt-8 w-full max-w-xl space-y-3">
-          <div className="grid gap-3 sm:grid-cols-[1fr_11rem]">
-            <CopyField label="Server IP" value={s?.serverAddress ?? ''} />
-            <CopyField label="Port" value={s?.serverPort ? String(s.serverPort) : ''} />
-          </div>
-          <button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg w-full"><MessageCircle />Join Discord</button>
+        <h1 className="mt-4 font-semibold"><span className="sr-only">MistEra SMP - </span>Bangladesh's Bedrock SMP. Online 24/7.</h1>
+        <p className="mt-4 max-w-lg text-base text-foreground/80 md:text-lg">{s?.heroTagline}</p>
+        <div className="mt-8 grid w-full max-w-xl gap-3 sm:grid-cols-[1fr_9rem]">
+          <CopyField label="Server IP" value={s?.serverAddress ?? ''} />
+          <CopyField label="Port" value={s?.serverPort ? String(s.serverPort) : ''} />
         </div>
-        <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
-          <a href="#join" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary">How to join <ArrowDown className="h-3.5 w-3.5" /></a>
-          <button onClick={() => openLink(s?.voteUrl, 'Voting')} className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"><Vote className="h-3.5 w-3.5" />Vote for us</button>
-          <Link to="/information" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"><BookOpen className="h-3.5 w-3.5" />Server info</Link>
+        <div className="mt-3 flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+          <button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg w-full sm:w-auto"><MessageCircle />Join Discord</button>
+          <button onClick={() => openLink(s?.voteUrl, 'Voting')} className="mc-btn mc-btn--lg mc-btn--gold w-full sm:w-auto"><Vote />Vote for us</button>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <a href="#join" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground">How to join <ArrowDown className="h-3.5 w-3.5" /></a>
+          <Link to="/information" className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"><BookOpen className="h-3.5 w-3.5" />Server info</Link>
         </div>
       </div>
     </section>
@@ -71,20 +70,19 @@ const FACTS = [
 
 function About({ s }: { s: Settings | null }) {
   return (
-    <section className="container mx-auto px-4 py-24">
-      <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr]">
+    <section className="wrap sect">
+      <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
         <Reveal>
-          <p className="label">The server</p>
-          <h2 className="mt-3 text-4xl font-bold leading-tight md:text-5xl">Private by design. <em>Built together.</em></h2>
-          <p className="mt-6 whitespace-pre-line text-lg leading-relaxed text-muted-foreground">{s?.introText}</p>
+          <h2 className="text-2xl font-semibold md:text-3xl">Private by design. Built together.</h2>
+          <p className="mt-4 max-w-prose whitespace-pre-line text-base leading-relaxed text-muted-foreground">{s?.introText}</p>
         </Reveal>
-        <ul className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
-          {FACTS.map((f, i) => (
-            <Reveal key={f.t} delay={i * 0.06} className="bg-card p-6">
-              <f.icon className="h-6 w-6 text-accent" />
-              <h3 className="mt-4 text-lg font-bold">{f.t}</h3>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {FACTS.map((f) => (
+            <li key={f.t} className="surface p-5">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary"><f.icon className="h-4 w-4 text-primary" /></span>
+              <h3 className="mt-4 text-base font-semibold">{f.t}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{f.d}</p>
-            </Reveal>
+            </li>
           ))}
         </ul>
       </div>
@@ -94,18 +92,18 @@ function About({ s }: { s: Settings | null }) {
 
 function Gallery({ s }: { s: Settings | null }) {
   return (
-    <section className="container mx-auto px-4 pb-24">
-      <div className="grid gap-4 md:grid-cols-2">
-        <Reveal className="relative overflow-hidden border border-border min-h-[300px]">
-          <img src={img(s, 'galleryImageOne')} alt="A castle build above a misty lake" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent dark:via-background/30" />
-          <div className="relative flex h-full flex-col justify-end p-6 md:p-8"><h3 className="text-2xl font-bold md:text-3xl">A world shaped by <em>its players.</em></h3><p className="mt-2 max-w-md text-muted-foreground">Every base, farm and town you see was built by someone on the whitelist.</p></div>
-        </Reveal>
-        <Reveal delay={0.12} className="relative overflow-hidden border border-border min-h-[300px]">
-          <img src={img(s, 'galleryImageTwo')} alt="A lantern-lit village at night" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent dark:from-background/90" />
-          <div className="relative flex h-full flex-col justify-end p-6"><h3 className="text-xl font-bold">Discord-first community</h3><p className="text-sm text-muted-foreground">Whitelist, support and news all live there.</p></div>
-        </Reveal>
+    <section className="wrap pb-12 md:pb-16">
+      <div className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
+        <div className="relative isolate flex min-h-[260px] overflow-hidden rounded-xl border border-border md:min-h-[340px]">
+          <img src={img(s, 'galleryImageOne')} alt="A castle build above a misty lake" loading="lazy" decoding="async" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
+          <div className="mt-auto p-5 md:p-7"><h3 className="text-xl font-semibold md:text-2xl">A world shaped by its players.</h3><p className="mt-1.5 max-w-md text-sm text-foreground/75">Every base, farm and town you see was built by someone on the whitelist.</p></div>
+        </div>
+        <div className="relative isolate flex min-h-[260px] overflow-hidden rounded-xl border border-border">
+          <img src={img(s, 'galleryImageTwo')} alt="A lantern-lit village at night" loading="lazy" decoding="async" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
+          <div className="mt-auto p-5"><h3 className="text-lg font-semibold">Discord-first community</h3><p className="mt-1 text-sm text-foreground/75">Whitelist, support and news all live there.</p></div>
+        </div>
       </div>
     </section>
   );
@@ -114,14 +112,14 @@ function Gallery({ s }: { s: Settings | null }) {
 function Join({ s }: { s: Settings | null }) {
   const { steps } = useSite();
   return (
-    <section id="join" className="scroll-mt-20 border-y border-border bg-card/40">
-      <div className="container mx-auto grid gap-12 px-4 py-24 lg:grid-cols-[1.3fr_1fr]">
+    <section id="join" className="scroll-mt-16 border-y border-border bg-card/40 lg:scroll-mt-4">
+      <div className="wrap sect grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
         <div>
-          <Reveal><p className="label">How to join</p><h2 className="mt-3 text-4xl font-bold md:text-5xl">Get <em>whitelisted.</em></h2><p className="mt-4 max-w-lg text-muted-foreground">Follow these steps. You can only connect once staff have approved your GamerTag.</p></Reveal>
-          <div className="mt-10"><HowToJoin steps={steps} /></div>
+          <Reveal><h2 className="text-2xl font-semibold md:text-3xl">Get whitelisted</h2><p className="mt-2 max-w-lg text-sm text-muted-foreground md:text-base">Follow these steps. You can only connect once staff have approved your GamerTag.</p></Reveal>
+          <div className="mt-8"><HowToJoin steps={steps} /></div>
         </div>
-        <Reveal delay={0.1} className="h-fit rounded-xl border border-border bg-background p-6 lg:sticky lg:top-24">
-          <h3 className="text-xl font-bold">Server details</h3>
+        <Reveal className="surface h-fit bg-background p-5 md:p-6 lg:sticky lg:top-6">
+          <h3 className="text-lg font-semibold">Server details</h3>
           <p className="mt-1 text-sm text-muted-foreground">Add these in Minecraft: Play, Servers, Add Server.</p>
           <div className="mt-5 space-y-3"><CopyField label="Server IP" value={s?.serverAddress ?? ''} /><CopyField label="Port" value={s?.serverPort ? String(s.serverPort) : ''} /></div>
           <button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mt-5 w-full"><MessageCircle className="h-4 w-4" />Join Discord to get whitelisted</button>
@@ -132,11 +130,11 @@ function Join({ s }: { s: Settings | null }) {
   );
 }
 
-function Head({ label, title, to, cta = 'View all' }: { label: string; title: React.ReactNode; to?: string; cta?: string }) {
+function Head({ title, to, cta = 'View all' }: { label?: string; title: React.ReactNode; to?: string; cta?: string }) {
   return (
-    <Reveal className="mb-8 flex items-end justify-between gap-4 border-b border-border pb-4">
-      <div><p className="label">{label}</p><h2 className="mt-2 text-3xl font-bold md:text-4xl">{title}</h2></div>
-      {to && <Link to={to} className="shrink-0 text-sm font-semibold text-primary hover:underline">{cta} <ArrowRight className="inline h-4 w-4" /></Link>}
+    <Reveal className="sect-head">
+      <h2>{title}</h2>
+      {to && <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline">{cta} <ArrowRight className="h-4 w-4" /></Link>}
     </Reveal>
   );
 }
@@ -145,11 +143,11 @@ function PostList({ posts, loading, icon, empty, onOpen }: { posts?: Post[]; loa
   if (loading) return <div className="space-y-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>;
   if (!posts?.length) return <EmptyState icon={icon} title={empty} message="Check back soon." />;
   return (
-    <ul className="divide-y divide-border border border-border bg-card">
+    <ul className="surface divide-y divide-border overflow-hidden">
       {posts.map((p) => (
-        <li key={p.id}><button onClick={() => onOpen(p)} className="group flex w-full gap-4 p-4 text-left transition hover:bg-secondary/60">
-          {p.imageUrl && <img src={p.imageUrl} alt="" loading="lazy" className="h-16 w-24 shrink-0 object-cover" />}
-          <span className="min-w-0"><span className="block font-mono text-xs text-muted-foreground">{fmtDate(p.publishedAt)}</span><span className="block truncate font-semibold group-hover:text-primary">{p.title}</span><span className="block truncate text-sm text-muted-foreground">{p.body}</span></span>
+        <li key={p.id}><button onClick={() => onOpen(p)} className="group flex w-full gap-4 p-4 text-left transition-colors hover:bg-secondary/60">
+          {p.imageUrl && <img src={p.imageUrl} alt="" loading="lazy" className="h-16 w-24 shrink-0 rounded-md object-cover" />}
+          <span className="min-w-0"><span className="block text-xs text-muted-foreground tabular-nums">{fmtDate(p.publishedAt)}</span><span className="block truncate text-sm font-semibold group-hover:text-primary">{p.title}</span><span className="block truncate text-sm text-muted-foreground">{p.body}</span></span>
         </button></li>
       ))}
     </ul>
@@ -160,37 +158,36 @@ export default function Home() {
   const { settings: s } = useSite();
   const { data, error, loading, reload } = useLoad('Load homepage', () => getHome({}), [], { cache: true });
   const [open, setOpen] = useState<Post | null>(null);
-  const sk = <div className="grid gap-5 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>;
+  const sk = <div className="grid gap-4 grid-cols-2 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>;
   return (
     <>
       <Hero s={s} />
       <About s={s} />
       <Gallery s={s} />
       <Join s={s} />
-      {error ? <div className="container mx-auto px-4 py-16"><InlineError error={error} onRetry={reload} /></div> : (<>
-        <section className="container mx-auto grid gap-12 px-4 py-24 lg:grid-cols-2">
-          <div><Head label="News" title="Announcements" to="/announcements" /><PostList posts={data?.announcements} loading={loading} icon={Megaphone} empty="No announcements yet" onOpen={setOpen} /></div>
-          <div><Head label="Changelog" title="Latest updates" to="/updates" /><PostList posts={data?.updates} loading={loading} icon={Sparkles} empty="No updates yet" onOpen={setOpen} /></div>
+      {error ? <div className="wrap py-16"><InlineError error={error} onRetry={reload} /></div> : (<>
+        <section className="wrap sect grid gap-10 lg:grid-cols-2 lg:gap-12">
+          <div><Head title="Announcements" to="/announcements" /><PostList posts={data?.announcements} loading={loading} icon={Megaphone} empty="No announcements yet" onOpen={setOpen} /></div>
+          <div><Head title="Latest updates" to="/updates" /><PostList posts={data?.updates} loading={loading} icon={Sparkles} empty="No updates yet" onOpen={setOpen} /></div>
         </section>
-        <section className="container mx-auto px-4 pb-24"><Head label="The team" title={<>Run by <em>players.</em></>} to="/staff" />
-          {loading ? sk : !data?.staff.length ? <EmptyState icon={Users} title="No staff members yet" message="Our team will appear here soon." /> : <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{data.staff.slice(0, 4).map((m, i) => <Reveal key={m.id} delay={i * 0.05}><StaffCard s={m} /></Reveal>)}</div>}
+        <section className="wrap pb-12 md:pb-16"><Head title="Run by players" to="/staff" />
+          {loading ? sk : !data?.staff.length ? <EmptyState icon={Users} title="No staff members yet" message="Our team will appear here soon." /> : <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">{data.staff.slice(0, 4).map((m) => <Reveal key={m.id}><StaffCard s={m} /></Reveal>)}</div>}
         </section>
-        <section className="container mx-auto px-4 pb-24"><Head label="Community" title="From the album" to="/album" cta="Open album" />
+        <section className="wrap pb-12 md:pb-16"><Head title="From the album" to="/album" cta="Open album" />
           {loading ? sk : !data?.album.length ? <EmptyState icon={Images} title="No approved images yet" message="Log in and share your best screenshots." /> : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{data.album.map((a, i) => (
-              <Reveal key={a.id} delay={i * 0.04}><div className="group overflow-hidden border border-border bg-card"><Link to="/album" className="block aspect-square overflow-hidden bg-secondary"><img src={a.imageUrl} alt={albumAlt(a)} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /></Link><div className="p-3"><UserChip user={a.uploader} /></div></div></Reveal>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{data.album.map((a) => (
+              <Reveal key={a.id}><div className="group surface overflow-hidden"><Link to="/album" className="block aspect-square overflow-hidden bg-secondary"><img src={a.imageUrl} alt={albumAlt(a)} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /></Link><div className="p-3"><UserChip user={a.uploader} /></div></div></Reveal>
             ))}</div>
           )}
         </section>
       </>)}
-      <section className="relative isolate overflow-hidden">
-        <img src={img(s, 'bannerImage')} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/75 to-background/90 dark:via-background/50" />
-        <div className="container mx-auto flex flex-col items-center px-4 py-28 text-center">
-          <p className="label">Join</p>
-          <h2 className="mt-3 text-4xl font-bold md:text-6xl">Your spot is <em>waiting.</em></h2>
-          <p className="mt-4 max-w-lg text-foreground/80">Join the Discord, post your GamerTag in the whitelist channel and wait for approval.</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3"><button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg"><MessageCircle />Join our Discord</button><button onClick={() => openLink(s?.voteUrl, 'Voting')} className="mc-btn mc-btn--lg mc-btn--gold"><Vote />Vote us</button></div>
+      <section className="relative isolate overflow-hidden border-t border-border">
+        <img src={img(s, 'bannerImage')} alt="" loading="lazy" className="absolute inset-0 -z-10 h-full w-full object-cover" style={{ filter: 'blur(2px)' }} />
+        <div className="absolute inset-0 -z-10 bg-background/85" />
+        <div className="wrap flex flex-col items-start py-14 md:py-20">
+          <h2 className="text-2xl font-semibold md:text-3xl">Your spot is waiting.</h2>
+          <p className="mt-3 max-w-lg text-foreground/80">Join the Discord, post your GamerTag in the whitelist channel and wait for approval.</p>
+          <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"><button onClick={() => openLink(s?.discordUrl, 'Discord')} className="mc-btn mc-btn--lg"><MessageCircle />Join our Discord</button><button onClick={() => openLink(s?.voteUrl, 'Voting')} className="mc-btn mc-btn--lg mc-btn--gold"><Vote />Vote us</button></div>
         </div>
       </section>
       <PostDialog post={open} onClose={() => setOpen(null)} />

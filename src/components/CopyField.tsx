@@ -23,14 +23,14 @@ export default function CopyField({ label, value, className }: { label: string; 
       disabled={empty}
       onClick={copy}
       aria-label={empty ? `${label} not set yet` : `Copy ${label}`}
-      className={cn('group flex h-16 w-full items-center gap-3 rounded-[var(--radius)] border border-border bg-card px-4 text-left transition-colors hover:border-primary disabled:cursor-default disabled:hover:border-border', className)}
+      className={cn('group flex h-14 w-full items-center gap-3 rounded-lg border border-border bg-card px-4 text-left transition-colors hover:border-primary disabled:cursor-default disabled:hover:border-border', className)}
     >
       <span className="min-w-0 flex-1">
-        <span className="block text-xs uppercase leading-4 text-muted-foreground">{label}</span>
-        <span className="mt-1 block truncate text-base leading-6 text-foreground">{empty ? 'Not set yet' : value}</span>
+        <span className="block text-xs leading-4 text-muted-foreground">{label}</span>
+        <span className="mt-0.5 block truncate text-sm font-medium leading-5 text-foreground tabular-nums">{empty ? 'Not set yet' : value}</span>
       </span>
       {!empty && (
-        <span className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-secondary transition-colors group-hover:bg-primary group-hover:text-primary-foreground', done ? 'text-emerald-500' : 'text-primary')}>
+        <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-md bg-secondary transition-colors group-hover:bg-primary group-hover:text-primary-foreground', done ? 'text-emerald-500' : 'text-primary')}>
           {done ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </span>
       )}

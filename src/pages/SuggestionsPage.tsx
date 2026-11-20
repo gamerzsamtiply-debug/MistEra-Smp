@@ -30,7 +30,7 @@ export function MySuggestions() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
       <div className="space-y-4 rounded-2xl border border-border bg-card p-6 h-fit">
-        <h3 className="text-lg font-bold">New suggestion</h3>
+        <h3 className="text-lg font-semibold">New suggestion</h3>
         <div className="space-y-1.5"><Label htmlFor="st">Title</Label><Input id="st" maxLength={100} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />{errs.title && <p className="text-sm text-destructive">{errs.title}</p>}</div>
         <div className="space-y-1.5"><Label htmlFor="sd">Description</Label><Textarea id="sd" rows={5} maxLength={2000} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />{errs.description && <p className="text-sm text-destructive">{errs.description}</p>}</div>
         <Button onClick={submit} disabled={busy}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Submit suggestion</Button>

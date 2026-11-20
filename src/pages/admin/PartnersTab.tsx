@@ -38,7 +38,7 @@ export default function PartnersTab() {
       {loading ? <Spinner /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.partners.length ? <EmptyState icon={Handshake} title="No partners available" message="Add your first partner." /> : (
         <div className="divide-y divide-border rounded-2xl border border-border bg-card">{data.partners.map((p) => (
           <div key={p.id} className="flex items-center gap-4 p-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-secondary">{p.logoUrl ? <img src={p.logoUrl} alt="" className="h-full w-full object-cover" /> : <span className="font-bold text-primary">{p.name[0]}</span>}</div>
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-secondary">{p.logoUrl ? <img src={p.logoUrl} alt="" className="h-full w-full object-cover" /> : <span className="font-semibold text-primary">{p.name[0]}</span>}</div>
             <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p><Badge variant="secondary">{p.category}</Badge></div>
             <Button size="icon" variant="ghost" onClick={() => { setErrs({}); setEdit(p as P); }} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
             <ConfirmDelete title={`Delete ${p.name}?`} onConfirm={() => del(p.id)}><Button size="icon" variant="ghost" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>

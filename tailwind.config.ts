@@ -7,14 +7,8 @@ const tailwindConfig: Config = {
   darkMode: ['class'],
   content: ['./index.html', './src/**/*.{ts,tsx,css}'],
   theme: {
+    container: { center: true, screens: { lg: '1120px' } },
     extend: {
-      // The Minecraft fonts are drawn on an 8px grid: sizes that are multiples of 8 stay sharp and evenly spaced.
-      fontSize: {
-        sm: ['1rem', { lineHeight: '1.5rem' }],
-        '3xl': ['2rem', { lineHeight: '2.5rem' }],
-        '4xl': ['2.5rem', { lineHeight: '2.75rem' }],
-        '6xl': ['4rem', { lineHeight: '1' }],
-      },
       fontFamily: {
         sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
         serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],
@@ -75,14 +69,15 @@ const tailwindConfig: Config = {
           5: 'hsl(var(--chart-5))',
         },
       },
+      // Two radii only: controls 10px, surfaces 14px (plus 6px for tiny chips and full pills).
       borderRadius: {
-        '3xl': 'calc(var(--radius) + 16px)',
-        '2xl': 'calc(var(--radius) + 8px)',
-        xl: 'calc(var(--radius) + 4px)',
-        lg: 'var(--radius)',
-        DEFAULT: 'calc(var(--radius) - 2px)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        '3xl': '14px',
+        '2xl': '14px',
+        xl: '14px',
+        lg: '10px',
+        DEFAULT: '10px',
+        md: '10px',
+        sm: '6px',
       },
       boxShadow: {
         '2xs': 'var(--shadow-2xs)',
