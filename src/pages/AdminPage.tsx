@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, LayoutDashboard, Server, ListOrdered, FileText, Megaphone, Sparkles, Users, UserRound, Handshake, Images, Lightbulb, ScrollText, Bug } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Server, ListOrdered, FileText, Megaphone, Sparkles, Users, UserRound, Handshake, Images, Lightbulb, ScrollText, Bug, MessageSquareHeart } from 'lucide-react';
 import { cn } from '@project/components/lib/utils';
 import { useSite } from '../lib/site';
 import { LOGO_MARK } from '../lib/brand';
@@ -16,6 +16,7 @@ import StaffTab from './admin/StaffTab';
 import AlbumTab from './admin/AlbumTab';
 import SuggestionsTab from './admin/SuggestionsTab';
 import LogsTab from './admin/LogsTab';
+import FeedbackTab from './admin/FeedbackTab';
 
 const TABS = [
   { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, el: <Overview /> },
@@ -29,6 +30,7 @@ const TABS = [
   { id: 'partners', label: 'Partners', icon: Handshake, el: <PartnersTab /> },
   { id: 'album', label: 'Album Approvals', icon: Images, el: <AlbumTab /> },
   { id: 'sugg', label: 'Suggestions', icon: Lightbulb, el: <SuggestionsTab /> },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquareHeart, el: <FeedbackTab /> },
   { id: 'logs', label: 'Activity Logs', icon: ScrollText, el: <LogsTab type="activity" /> },
   { id: 'errors', label: 'Error Logs', icon: Bug, el: <LogsTab type="error" /> },
 ];

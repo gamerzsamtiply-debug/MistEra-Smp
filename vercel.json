@@ -88,6 +88,15 @@
       ]
     },
     {
+      "source": "/feedback",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
       "source": "/admin",
       "headers": [
         {

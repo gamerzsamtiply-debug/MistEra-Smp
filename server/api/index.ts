@@ -44,6 +44,11 @@ import adminSaveStaff from './adminSaveStaff.js';
 import adminStaffClaimCode from './adminStaffClaimCode.js';
 import claimStaff from './claimStaff.js';
 import register from './register.js';
+import submitFeedback from './submitFeedback.js';
+import adminListFeedback from './adminListFeedback.js';
+import adminDeleteFeedback from './adminDeleteFeedback.js';
+import latestPosts from './latestPosts.js';
+import health from './health.js';
 
 export const endpoints: Record<string, Endpoint> = {
   adminDeleteStaff,
@@ -53,6 +58,11 @@ export const endpoints: Record<string, Endpoint> = {
   adminStaffClaimCode,
   claimStaff,
   register,
+  submitFeedback,
+  adminListFeedback,
+  adminDeleteFeedback,
+  latestPosts,
+  health,
   adminDeletePartner,
   adminDeletePost,
   adminGetSettings,

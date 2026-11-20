@@ -1,4 +1,4 @@
-export type ErrorCode = 'BAD_REQUEST' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'CONFLICT' | 'RATE_LIMITED' | 'INTERNAL';
+export type ErrorCode = 'BAD_REQUEST' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'CONFLICT' | 'RATE_LIMITED' | 'INTERNAL' | 'SETUP';
 
 export const STATUS: Record<ErrorCode, number> = {
   BAD_REQUEST: 400,
@@ -8,6 +8,7 @@ export const STATUS: Record<ErrorCode, number> = {
   CONFLICT: 409,
   RATE_LIMITED: 429,
   INTERNAL: 500,
+  SETUP: 503,
 };
 
 /** An error whose message is safe to show to end users. */
@@ -23,6 +24,6 @@ export class ApiError extends Error {
   }
 }
 
-export function fail(code: Exclude<ErrorCode, 'INTERNAL'>, message: string): ApiError {
+export function fail(code: Exclude<ErrorCode, 'INTERNAL' | 'SETUP'>, message: string): ApiError {
   return new ApiError(code, message);
 }

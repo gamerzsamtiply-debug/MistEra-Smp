@@ -98,6 +98,7 @@ const PRIVATE_TITLES: Record<string, string> = {
   '/reset-password': 'Reset password | MistEra SMP',
   '/profile': 'Your profile | MistEra SMP',
   '/suggestions': 'Suggestions | MistEra SMP',
+  '/feedback': 'Feedback | MistEra SMP',
   '/admin': 'Admin panel | MistEra SMP',
   '/401': 'Authentication required | MistEra SMP',
   '/403': 'Access forbidden | MistEra SMP',

@@ -22,3 +22,14 @@ Without email confirmation anyone can register any address. The owner address th
 
 ## Not verified here
 This environment had no network, so `npm install`, `npm run build`, the tests and a real Supabase/Vercel run could not be executed. Files were syntax-checked and all imports resolved, and tests were updated, but run `npm run ci` first and report anything that fails.
+
+---
+# Update 2 (design + fixes)
+
+**Run `supabase/migrations/0003_staff_members.sql` and `0004_feedback.sql` in the Supabase SQL Editor.** A missing 0003 is the most likely reason "Add staff" fails.
+
+- 500 errors now say *why*: missing env var / missing migration / wrong key come back as a readable "Setup needed" message (HTTP 503). Admin > Overview shows a Setup check card (uses new `health` endpoint).
+- Font: Milky Moringa everywhere (personal-use licence: see README in the font zip).
+- Glass cards on both themes, Apple white (#f5f5f7) light mode, logos no longer sit on a dark tile, images fade at their edges.
+- Notifications bell (new announcements/updates), Feedback page (/feedback) + Admin > Feedback tab.
+- Home page reduced to the essentials (staff, announcements, updates and album sections removed; their own pages remain).

@@ -38,6 +38,8 @@ export function classify(err: unknown): AppError {
   else if (status === 400 || code === 'BAD_REQUEST') kind = 'invalid';
   else if (status === 409 || code === 'CONFLICT') kind = 'conflict';
   const raw = e?.userFacingMessage || e?.message || '';
+  // Setup problems (missing migration / env var) carry a human-written fix; show it as is.
+  if (code === 'SETUP') return { kind: 'server', title: 'Setup needed', message: raw.slice(0, 300), correlationId: newId() };
   // Only show messages that are clearly written for people; never raw technical errors.
   const friendly = kind !== 'server' && kind !== 'network' && raw && raw.length < 200 && !/[{}<>]|stack|sql|exception|undefined|null/i.test(raw);
   return { kind, title: TITLES[kind], message: friendly ? raw : DEFAULTS[kind], correlationId: newId() };

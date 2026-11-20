@@ -19,6 +19,7 @@ const ContentPage = lazy(() => import('./pages/ContentPage'));
 const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const SuggestionsPage = lazy(() => import('./pages/SuggestionsPage'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 
@@ -70,6 +71,7 @@ export default function App() {
                 <Route path="/announcements" element={<PostsPage kind="Announcement" />} />
                 <Route path="/updates" element={<PostsPage kind="Update" />} />
                 <Route path="/album" element={<AlbumPage />} />
+                <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/u/:id" element={<PublicProfile />} />
                 <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                 <Route path="/suggestions" element={<RequireAuth><SuggestionsPage /></RequireAuth>} />

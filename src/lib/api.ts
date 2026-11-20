@@ -162,3 +162,8 @@ export const mySuggestions = (input?: Any) => call<Any>('mySuggestions', input);
 export const submitAlbum = (input?: Any) => call<Any>('submitAlbum', input);
 export const submitSuggestion = (input?: Any) => call<Any>('submitSuggestion', input);
 export const updateMyProfile = (input?: Any) => call<Any>('updateMyProfile', input);
+export const submitFeedback = (input: { name?: string; contact?: string; message: string }) => call<{ ok: true }>('submitFeedback', input);
+export const adminListFeedback = (input?: Any) => call<Any>('adminListFeedback', input);
+export const adminDeleteFeedback = (input?: Any) => call<Any>('adminDeleteFeedback', input);
+export const latestPosts = (input?: Any) => call<{ posts: { id: string; kind: 'Announcement' | 'Update'; title: string; body: string; imageUrl: string; publishedAt: string }[] }>('latestPosts', input);
+export const health = (input?: Any) => call<{ ok: boolean; env: Record<string, boolean>; missingTables: string[]; keyProblem: boolean }>('health', input);

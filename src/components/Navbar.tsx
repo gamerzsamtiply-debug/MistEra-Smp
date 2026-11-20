@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, X, LifeBuoy, LogOut, User, ShieldCheck, LogIn, Home, BookOpen, Users, Handshake, Megaphone, Sparkles, Images, type LucideIcon } from 'lucide-react';
+import { Menu, X, LifeBuoy, LogOut, User, ShieldCheck, LogIn, Home, BookOpen, Users, Handshake, Megaphone, Sparkles, Images, MessageSquareHeart, type LucideIcon } from 'lucide-react';
 import { useAuth, loginWithRedirect, logout } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Button } from '@project/components/ui/button';
@@ -9,10 +9,11 @@ import { useSite } from '../lib/site';
 import { LOGO_MARK } from '../lib/brand';
 import { UserAvatar } from './UserChip';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from './NotificationBell';
 
 const LINKS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Home', icon: Home }, { to: '/information', label: 'Information', icon: BookOpen }, { to: '/staff', label: 'Staff', icon: Users },
-  { to: '/partners', label: 'Partners', icon: Handshake }, { to: '/announcements', label: 'Announcements', icon: Megaphone }, { to: '/updates', label: 'Updates', icon: Sparkles }, { to: '/album', label: 'Album', icon: Images },
+  { to: '/partners', label: 'Partners', icon: Handshake }, { to: '/announcements', label: 'Announcements', icon: Megaphone }, { to: '/updates', label: 'Updates', icon: Sparkles }, { to: '/album', label: 'Album', icon: Images }, { to: '/feedback', label: 'Feedback', icon: MessageSquareHeart },
 ];
 
 export function openHelp(url?: string) {
@@ -76,7 +77,7 @@ export default function Navbar() {
         </nav>
         <div className="mt-auto flex w-full flex-col items-center gap-1 min-[1360px]:items-stretch">
           <button onClick={() => openHelp(settings?.ticketUrl)} title="Help" aria-label="Help" className="rail-link"><LifeBuoy /><span className="rail-label">Help</span></button>
-          <div className="flex items-center justify-center min-[1360px]:justify-start"><ThemeToggle /></div>
+          <div className="flex items-center justify-center gap-1 min-[1360px]:justify-start"><NotificationBell /><ThemeToggle /></div>
           <AccountMenu compact />
         </div>
       </aside>
@@ -85,6 +86,7 @@ export default function Navbar() {
       <header className="topbar">
         <Brand label />
         <div className="ml-auto flex items-center gap-1">
+          <NotificationBell />
           <ThemeToggle />
           <AccountMenu />
           <Button size="icon" variant="ghost" onClick={() => setOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={open}>{open ? <X /> : <Menu />}</Button>

@@ -15,7 +15,8 @@ export function db(): SupabaseClient {
   const key = env('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !key) {
     console.error('[config] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set on the server.');
-    throw new ApiError('INTERNAL', 'The server is not configured correctly.');
+    // 503 + a readable message (instead of a blank 500) so the cause is obvious: set these in Vercel -> Settings -> Environment Variables, then redeploy.
+    throw new ApiError('SETUP', 'Server setup incomplete: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are not set in Vercel. Add them, then redeploy.');
   }
   client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: resilientFetch } });
   return client;
@@ -67,6 +68,10 @@ export function must<T>(res: DbResult<T>, what: string): T {
   if (res.error) {
     console.error(`[db] ${what}:`, res.error);
     const code = res.error.code ?? '';
+    // Table/function missing = a SQL migration has not been run in Supabase yet. Say so instead of a blank 500.
+    if (isMissingRelation(res.error)) throw new ApiError('SETUP', `Database not set up yet (${what}). Run the SQL files in supabase/migrations (0001 to 0004) in the Supabase SQL Editor.`);
+    // 401/PGRST301/JWT problems here almost always mean SUPABASE_SERVICE_ROLE_KEY is wrong (for example the anon key was pasted).
+    if (/invalid api key|jwt|permission denied/i.test(res.error.message ?? '') || code === '42501') throw new ApiError('SETUP', 'Database key rejected. Check that SUPABASE_SERVICE_ROLE_KEY in Vercel is the service_role key (not the anon key), then redeploy.');
     if (code === '23505') throw new ApiError('CONFLICT', 'That already exists.');
     if (['22P02', '22001', '22003', '23502', '23503', '23514'].includes(code)) throw new ApiError('BAD_REQUEST', 'Some information is invalid. Please review it and try again.');
     throw new ApiError('INTERNAL', 'Database error');

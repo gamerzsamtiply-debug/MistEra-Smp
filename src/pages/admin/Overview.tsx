@@ -3,11 +3,12 @@ import { adminOverview } from '@/lib/api';
 import { Skeleton } from '@project/components/ui/skeleton';
 import { InlineError, EmptyState } from '../../components/States';
 import { useLoad } from '../../lib/useLoad';
+import SetupCheck from './SetupCheck';
 import { fmtDateTime } from '../../lib/format';
 
 export default function Overview() {
   const { data, error, loading, reload } = useLoad('Admin overview', () => adminOverview({}));
-  if (error) return <InlineError error={error} onRetry={reload} />;
+  if (error) return <div className="space-y-4"><SetupCheck /><InlineError error={error} onRetry={reload} /></div>;
   const c = data?.counts;
   const cards = [
     { icon: Users, label: 'Total users', v: c?.users }, { icon: Shield, label: 'Staff', v: c?.staff }, { icon: Handshake, label: 'Partners', v: c?.partners },
@@ -15,6 +16,7 @@ export default function Overview() {
   ];
   return (
     <div className="space-y-8">
+      <SetupCheck />
       <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((k, i) => (
           <div key={k.label} className="rounded-xl border border-border bg-card p-4 md:p-5">
