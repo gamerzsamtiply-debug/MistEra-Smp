@@ -90,6 +90,13 @@ export async function requireAdmin(u: AuthUser): Promise<ProfileRow> {
   return p;
 }
 
+/** Moderators, Admins and the Owner can review the community album. Everything else in the Admin Panel stays Admin-only. */
+export async function requireModerator(u: AuthUser): Promise<ProfileRow> {
+  const p = await ensureProfile(u);
+  if (p.role !== 'Owner' && p.role !== 'Admin' && p.role !== 'Moderator') throw fail('FORBIDDEN', "You don't have permission to review the album.");
+  return p;
+}
+
 /**
  * Writes the admin audit trail. The action itself has already succeeded when this runs, so a logging
  * failure is reported on the server console but never turns a successful change into an error response.

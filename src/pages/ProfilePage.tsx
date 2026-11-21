@@ -46,25 +46,26 @@ function StaffLink() {
 /** Edit your name (username), bio and round profile photo. */
 function EditProfileDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { me, reloadMe } = useSite();
-  const [f, setF] = useState({ username: '', bio: '', avatarUrl: '' });
+  const [f, setF] = useState({ username: '', bio: '', avatarUrl: '', bannerUrl: '' });
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (me && open) setF({ username: me.profile.username, bio: me.profile.bio, avatarUrl: me.profile.avatarUrl }); }, [me, open]);
+  useEffect(() => { if (me && open) setF({ username: me.profile.username, bio: me.profile.bio, avatarUrl: me.profile.avatarUrl, bannerUrl: me.profile.bannerUrl ?? '' }); }, [me, open]);
   const save = async () => {
     const e: Record<string, string> = {};
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(f.username.trim())) e.username = 'Use 3-20 letters, numbers or underscores.';
     if (f.bio.length > 300) e.bio = 'Bio must be 300 characters or fewer.';
     setErrs(e); if (Object.keys(e).length) return;
     setBusy(true);
-    try { await run('Profile update', () => updateMyProfile(f), { success: 'Profile updated', failTitle: 'Profile update failed' }); reloadMe(); onOpenChange(false); } catch { /* shown */ } finally { setBusy(false); }
+    try { await run('Profile update', () => updateMyProfile({ username: f.username, bio: f.bio, avatarUrl: f.avatarUrl, ...(f.bannerUrl !== (me?.profile.bannerUrl ?? '') ? { bannerUrl: f.bannerUrl } : {}) }), { success: 'Profile updated', failTitle: 'Profile update failed' }); reloadMe(); onOpenChange(false); } catch { /* shown */ } finally { setBusy(false); }
   };
   if (!me) return null;
   return (
     <Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader><DialogTitle>Edit profile</DialogTitle><DialogDescription>Change your photo, name and bio.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>Edit profile</DialogTitle><DialogDescription>Change your photo, banner, name and bio.</DialogDescription></DialogHeader>
         <div className="space-y-5">
           <ImageUpload round name={f.username || me.profile.username} value={f.avatarUrl} onChange={(u) => setF({ ...f, avatarUrl: u })} label="Upload photo" />
+          <div className="space-y-1.5"><Label>Banner</Label><ImageUpload banner value={f.bannerUrl} onChange={(u) => setF({ ...f, bannerUrl: u })} label="Upload banner" /></div>
           <div className="space-y-1.5"><Label htmlFor="un">Name (username)</Label><Input id="un" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} aria-invalid={!!errs.username} />{errs.username && <p className="text-sm text-destructive">{errs.username}</p>}</div>
           <div className="space-y-1.5"><Label htmlFor="bio">Bio</Label><Textarea id="bio" rows={4} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} placeholder="Tell the community about yourself" /><p className="text-xs text-muted-foreground">{f.bio.length}/300</p>{errs.bio && <p className="text-sm text-destructive">{errs.bio}</p>}</div>
           <Button onClick={save} disabled={busy} className="w-full">{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save changes</Button>

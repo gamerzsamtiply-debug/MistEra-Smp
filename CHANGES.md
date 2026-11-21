@@ -108,3 +108,11 @@ No network in the build environment: `npm install`, `npm run ci` and a real Verc
 - Dark theme background #1D1D1D (neutral greys for cards/borders). Main buttons / Join Discord: #FDDC56 -> #FCA834 gradient. Default buttons and cyan text: #68C3DE -> #49F1FF gradient.
 - Calmer, consistent icon set (Newspaper, History, Building2, MessageSquare, CircleHelp, role icons) and a lighter icon stroke.
 - "x is not a function" 500 hardening: effects never return a value, a render error is retried once silently, and Navbar / Footer / bottom bar can no longer take the whole page down.
+
+## v8 - photo editor, downloads, moderator album access, banners, welcome page
+- **Run `supabase/migrations/0008_profile_banner.sql`** in the Supabase SQL Editor (adds the profile banner column). Until then everything else works; only saving a banner needs it.
+- Photo editor before every picture upload: move/crop, zoom (slider, mouse wheel, pinch) and a brush (colours, size, undo, clear). Profile photo = square, banner = 3:1, album = Original / 1:1 / 4:5 / 16:9. "Use original" skips editing. Videos and animated GIFs upload as they are.
+- Album: tap a picture to open it large with a Download button; every post (photo or video) also has a download icon.
+- Moderators, Admins and the Owner can approve / decline album posts. Moderators see only "Album Approvals" in the panel (button in navbar says "Moderation"); everything else stays Admin/Owner only. Deleting a post for good is Admin/Owner only.
+- Members can set a profile banner (Edit profile).
+- After sign-up (email or Google) people land on /welcome: set avatar, name and bio, or tap Skip at the bottom.

@@ -14,7 +14,7 @@ export default publicEndpoint(z.object({ profileId: z.string().min(1).max(64) })
   const images = (must(r, 'album.byUser') ?? []) as AlbumRow[];
   const views = await albumViewCounts(images.map((a) => a.id));
   return {
-    profile: { id: p.id, username: p.username ?? 'player', bio: p.bio ?? '', avatarUrl: p.avatar_url ?? '', role: displayRole(p.role), joinedAt: p.joined_at ?? '' },
+    profile: { id: p.id, username: p.username ?? 'player', bio: p.bio ?? '', avatarUrl: p.avatar_url ?? '', bannerUrl: p.banner_url ?? '', role: displayRole(p.role), joinedAt: p.joined_at ?? '' },
     images: images.map((a) => ({ id: a.id, mediaType: a.media_type === 'video' ? 'video' : 'image', imageUrl: a.image_url ?? '', caption: a.caption ?? '', viewCount: views.get(a.id) ?? 0 })),
   };
 });

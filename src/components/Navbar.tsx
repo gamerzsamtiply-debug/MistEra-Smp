@@ -52,7 +52,7 @@ function AccountMenu({ compact }: { compact?: boolean }) {
         <DropdownMenuLabel className="truncate">@{me?.profile?.username ?? '...'}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link to="/profile"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
-        {me?.isAdmin && <DropdownMenuItem asChild><Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" />Admin Panel</Link></DropdownMenuItem>}
+        {me?.isModerator && <DropdownMenuItem asChild><Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" />{me.isAdmin ? 'Admin Panel' : 'Moderation'}</Link></DropdownMenuItem>}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => logout()}><LogOut className="mr-2 h-4 w-4" />Log out</DropdownMenuItem>
       </DropdownMenuContent>
@@ -102,7 +102,7 @@ export default function Navbar() {
           <NavLink key={l.to} to={l.to} end className="chip" onClick={() => sfx.tap()}><l.icon />{l.label}</NavLink>
         ))}
         <button type="button" onClick={() => openHelp(settings?.ticketUrl)} className="chip"><CircleHelp />Help</button>
-        {user && me?.isAdmin && <NavLink to="/admin" className="chip"><ShieldCheck />Admin</NavLink>}
+        {user && me?.isModerator && <NavLink to="/admin" className="chip"><ShieldCheck />{me.isAdmin ? 'Admin' : 'Moderation'}</NavLink>}
       </nav>
     </>
   );

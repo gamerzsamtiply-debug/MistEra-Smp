@@ -123,18 +123,27 @@ await test('role rules: only Owner grants/removes Admin; Owner & self are locked
 });
 await test('members and moderators cannot call ANY admin endpoint', async () => {
   await seedStaff(); await ok('getMe', {}, 't-m1');
-  const adminNames = ['adminGetSettings', 'adminListAlbum', 'adminListPages', 'adminListPosts', 'adminListSteps', 'adminListSuggestions', 'adminListUsers', 'adminLogs', 'adminOverview'];
+  const adminNames = ['adminGetSettings', 'adminListPages', 'adminListPosts', 'adminListSteps', 'adminListSuggestions', 'adminListUsers', 'adminLogs', 'adminOverview'];
   const inputs = { adminListAlbum: { status: 'Pending' }, adminListPosts: { kind: 'Update' }, adminLogs: { type: 'error' } };
   for (const tok of ['t-m1', 't-mod']) for (const n of adminNames) await denied(n, inputs[n] ?? {}, tok, 403, 'FORBIDDEN');
   for (const tok of ['t-m1', 't-mod']) {
     await denied('adminSavePost', { kind: 'Update', title: 'abc', body: 'b', imageUrl: '', published: true, publishedAt: '' }, tok, 403);
     await denied('adminSaveSettings', { serverAddress: 'evil.com', serverPort: 1, platform: '', serverStatus: 'Offline', discordUrl: '', voteUrl: '', ticketUrl: '', heroTagline: '', introText: '', maintenanceMode: true, maintenanceMessage: '' }, tok, 403);
     await denied('adminSavePartner', { name: 'evil', category: 'Shop', description: '', logoUrl: '', websiteUrl: '' }, tok, 403);
-    await denied('adminReviewAlbum', { id: '1', action: 'Approved' }, tok, 403);
     await denied('adminSaveStep', { slot: 1, title: 't', instructions: 'i', imageUrl: '', enabled: true, sortOrder: 1 }, tok, 403);
     await denied('adminSavePage', { slug: 'terms', title: 't', content: 'c', published: true }, tok, 403);
   }
   assert.equal(fake.rows('posts').length, 0); assert.equal(fake.rows('partners').length, 0);
+});
+await test('moderators can review the album (approve/decline) but not delete; members cannot; admin keeps full access', async () => {
+  await seedStaff(); await ok('getMe', {}, 't-m1');
+  assert.equal((await ok('getMe', {}, 't-mod')).isModerator, true); assert.equal((await ok('getMe', {}, 't-mod')).isAdmin, false);
+  assert.equal((await ok('getMe', {}, 't-m1')).isModerator, false);
+  await denied('adminListAlbum', { status: 'Pending' }, 't-m1', 403, 'FORBIDDEN');
+  await denied('adminReviewAlbum', { id: '1', action: 'Approved' }, 't-m1', 403, 'FORBIDDEN');
+  await ok('adminListAlbum', { status: 'Pending' }, 't-mod'); await ok('adminListAlbum', { status: 'Pending' }, 't-admin'); await ok('adminListAlbum', { status: 'Pending' }, 't-owner');
+  await denied('adminReviewAlbum', { id: '1', action: 'Approved' }, 't-mod', 404, 'NOT_FOUND'); // allowed through the permission check, the post just doesn't exist
+  await denied('adminReviewAlbum', { id: '1', action: 'Delete' }, 't-mod', 403, 'FORBIDDEN');
 });
 
 console.log('\nServer settings, maintenance, join steps');

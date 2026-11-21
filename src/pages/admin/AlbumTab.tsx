@@ -9,11 +9,13 @@ import ConfirmDelete from '../../components/ConfirmDelete';
 import { GridSkeleton, InlineError, EmptyState } from '../../components/States';
 import { useLoad } from '../../lib/useLoad';
 import { run } from '../../lib/errors';
+import { useSite } from '../../lib/site';
 import { fmtDate } from '../../lib/format';
 
 type St = 'Pending' | 'Approved' | 'Declined';
 
 export default function AlbumTab() {
+  const { me } = useSite();
   const [status, setStatus] = useState<St>('Pending');
   const { data, error, loading, reload, setData } = useLoad(`Admin album ${status}`, () => adminListAlbum({ status }), [status]);
   const act = async (id: string, action: St | 'Delete') => {
@@ -35,7 +37,7 @@ export default function AlbumTab() {
               <div className="flex gap-2">
                 {status !== 'Approved' && <Button size="sm" className="flex-1" onClick={() => act(a.id, 'Approved')}><Check className="mr-1 h-4 w-4" />Approve</Button>}
                 {status !== 'Declined' && <Button size="sm" variant="secondary" className="flex-1" onClick={() => act(a.id, 'Declined')}><X className="mr-1 h-4 w-4" />Decline</Button>}
-                <ConfirmDelete title="Delete this image permanently?" onConfirm={() => act(a.id, 'Delete')}><Button size="icon" variant="ghost" className="h-9 w-9" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>
+                {me?.isAdmin && <ConfirmDelete title="Delete this image permanently?" onConfirm={() => act(a.id, 'Delete')}><Button size="icon" variant="ghost" className="h-9 w-9" aria-label="Delete"><Trash2 className="h-4 w-4" /></Button></ConfirmDelete>}
               </div>
             </div>
           </div>

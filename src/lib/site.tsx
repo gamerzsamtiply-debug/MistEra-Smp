@@ -5,7 +5,7 @@ import { run, isAppError, type AppError } from './errors';
 
 export type Settings = GetSiteOutputType['settings'];
 export type Step = GetSiteOutputType['steps'][0];
-export interface Me { profile: { id: string; username: string; bio: string; avatarUrl: string; role: string }; staffPosition: string | null; isOwner: boolean; isAdmin: boolean }
+export interface Me { profile: { id: string; username: string; bio: string; avatarUrl: string; bannerUrl?: string; role: string }; staffPosition: string | null; isOwner: boolean; isAdmin: boolean; isModerator: boolean }
 
 interface SiteCtx { settings: Settings | null; steps: Step[]; me: Me | null; meLoading: boolean; error: AppError | null; reload: () => void; reloadMe: () => void }
 const Ctx = createContext<SiteCtx | null>(null);

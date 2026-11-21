@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useUpload } from '@/lib/upload';
 import { toast } from 'sonner';
 import { Camera, ImagePlus, Loader2, X } from 'lucide-react';
 import { Button } from '@project/components/ui/button';
 import { UserAvatar } from './UserChip';
+import ImageEditor from './ImageEditor';
 
 const TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 export const MAX_MB = 5;
@@ -27,20 +28,38 @@ async function squareCrop(f: File): Promise<File> {
   } catch { return f; }
 }
 
-export default function ImageUpload({ value, onChange, label = 'Upload image', round, name = 'user' }: { value: string; onChange: (url: string) => void; label?: string; round?: boolean; name?: string }) {
+/** `round` = square profile photo (shown as a circle); `banner` = wide 3:1 banner. Every picture can be cropped, zoomed and drawn on before it is uploaded (GIFs are uploaded as they are). */
+export default function ImageUpload({ value, onChange, label = 'Upload image', round, banner, name = 'user' }: { value: string; onChange: (url: string) => void; label?: string; round?: boolean; banner?: boolean; name?: string }) {
   const { upload, isUploading } = useUpload();
   const ref = useRef<HTMLInputElement>(null);
-  const pick = async (f?: File) => {
-    if (!f) return;
-    if (!TYPES.includes(f.type)) return toast.error('Unsupported image format', { description: 'Please use PNG, JPG, WEBP or GIF.' });
-    if (f.size > MAX_MB * 1024 * 1024) return toast.error('Image too large', { description: `Images must be ${MAX_MB} MB or smaller.` });
+  const [editing, setEditing] = useState<File | null>(null);
+  const send = async (f: File) => {
     try {
-      const { url } = await upload(round ? await squareCrop(f) : f);
+      const { url } = await upload(f);
       onChange(url);
     } catch {
       toast.error('Upload failed', { description: "Your image couldn't be uploaded. Check the file and try again." });
     } finally { if (ref.current) ref.current.value = ''; }
   };
+  const pick = (f?: File) => {
+    if (!f) return;
+    if (!TYPES.includes(f.type)) return toast.error('Unsupported image format', { description: 'Please use PNG, JPG, WEBP or GIF.' });
+    if (f.size > MAX_MB * 1024 * 1024) return toast.error('Image too large', { description: `Images must be ${MAX_MB} MB or smaller.` });
+    if (f.type === 'image/gif') { void send(f); return; } // animated pictures can't be edited without losing the animation
+    setEditing(f);
+  };
+  const editor = editing && (
+    <ImageEditor
+      file={editing}
+      aspect={round ? 1 : banner ? 3 : null}
+      aspects={round || banner ? undefined : [{ label: 'Original', value: null }, { label: '1:1', value: 1 }, { label: '4:3', value: 4 / 3 }, { label: '16:9', value: 16 / 9 }]}
+      outMax={round ? 640 : banner ? 1500 : 1600}
+      title={round ? 'Edit your photo' : banner ? 'Edit your banner' : 'Edit your picture'}
+      onCancel={() => { setEditing(null); if (ref.current) ref.current.value = ''; }}
+      onDone={(edited) => { setEditing(null); void send(edited); }}
+      onSkip={() => { const f = editing; setEditing(null); void (round ? squareCrop(f).then(send) : send(f)); }}
+    />
+  );
   const input = <input ref={ref} type="file" accept={TYPES.join(',')} hidden onChange={(e) => pick(e.target.files?.[0])} />;
 
   // Profile photo: a round preview, tap to change.
@@ -60,6 +79,7 @@ export default function ImageUpload({ value, onChange, label = 'Upload image', r
         </div>
         <p className="text-xs text-muted-foreground">Shown as a circle - PNG, JPG, WEBP or GIF, up to {MAX_MB} MB</p>
         {input}
+        {editor}
       </div>
     );
   }
@@ -67,7 +87,7 @@ export default function ImageUpload({ value, onChange, label = 'Upload image', r
     <div className="space-y-2">
       {value ? (
         <div className="relative overflow-hidden rounded-xl border border-border">
-          <img src={value} alt="" className="max-h-56 w-full object-cover" />
+          <img src={value} alt="" className={banner ? "aspect-[3/1] w-full object-cover" : "max-h-56 w-full object-cover"} />
           <Button type="button" size="icon" variant="secondary" className="absolute right-2 top-2 h-8 w-8" onClick={() => onChange('')} aria-label="Remove image"><X className="h-4 w-4" /></Button>
         </div>
       ) : (
@@ -78,6 +98,7 @@ export default function ImageUpload({ value, onChange, label = 'Upload image', r
         </button>
       )}
       {input}
+      {editor}
     </div>
   );
 }

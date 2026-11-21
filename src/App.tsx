@@ -14,6 +14,7 @@ import PartnersPage from './pages/PartnersPage';
 import PostsPage from './pages/PostsPage';
 import AlbumPage from './pages/AlbumPage';
 import LoginPage from './pages/LoginPage';
+import WelcomePage from './pages/WelcomePage';
 import { markVisited } from './lib/firstVisit';
 import Shield from './components/Shield';
 const ContentPage = lazy(() => import('./pages/ContentPage'));
@@ -37,7 +38,7 @@ function RequireAdmin({ children }: { children: ReactNode }) {
   const { me, meLoading } = useSite();
   if (isLoading || (user && meLoading)) return <Spinner label="Checking permissions..." />;
   if (!user) return <ErrorPage code="401" message="Please log in to access the Admin Panel." />;
-  if (!me?.isAdmin) return <ErrorPage code="403" message="You don't have permission to access the Admin Panel." />;
+  if (!me?.isModerator) return <ErrorPage code="403" message="You don't have permission to access the Admin Panel." />;
   return <>{children}</>;
 }
 
@@ -81,6 +82,7 @@ export default function App() {
                 <Route path="/album" element={<AlbumPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/u/:id" element={<PublicProfile />} />
+                <Route path="/welcome" element={<RequireAuth><WelcomePage /></RequireAuth>} />
                 <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                 <Route path="/suggestions" element={<RequireAuth><SuggestionsPage /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />

@@ -35,7 +35,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  // Someone who just created an account lands on the Home page; a normal sign-in returns to where they came from.
+  // Someone who just created an account lands on the Welcome page (set avatar / name, or skip); a normal sign-in returns to where they came from.
   const dest = useRef(next);
   useEffect(() => {
     if (!isLoading && user) nav(dest.current, { replace: true });
@@ -62,7 +62,7 @@ export default function LoginPage() {
         // The account is created ready to use (no confirmation e-mail), then we sign straight in.
         try {
           await register({ email: mail, password });
-          dest.current = '/'; // account created: send them straight to Home
+          dest.current = '/welcome'; // account created: send them to the Welcome page
         } catch (err) {
           const e2 = err as { userFacingMessage?: string; status?: number };
           setError(e2.status && e2.status < 500 && e2.userFacingMessage ? e2.userFacingMessage : 'We could not create your account right now. Please try again.');
@@ -107,7 +107,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             {mode !== 'forgot' && (
               <>
-                <GoogleButton next={mode === 'signup' ? '/' : next} onError={setError} />
+                <GoogleButton next={mode === 'signup' ? '/welcome' : next} onError={setError} />
                 <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
               </>
             )}

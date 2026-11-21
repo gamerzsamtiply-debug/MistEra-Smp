@@ -39,8 +39,10 @@ const TABS = [
 
 export default function AdminPage() {
   const { me } = useSite();
-  const [tab, setTab] = useState('overview');
-  const cur = TABS.find((t) => t.id === tab) ?? TABS[0];
+  // Admins and the Owner see everything; Moderators only get the album approvals.
+  const tabs = me?.isAdmin ? TABS : TABS.filter((t) => t.id === 'album');
+  const [tab, setTab] = useState(me?.isAdmin ? 'overview' : 'album');
+  const cur = tabs.find((t) => t.id === tab) ?? tabs[0];
   const item = (t: (typeof TABS)[number]) => (
     <button key={t.id} type="button" onClick={() => setTab(t.id)} title={t.label} aria-label={t.label} aria-current={tab === t.id ? 'page' : undefined} className="rail-link">
       <t.icon /><span className="rail-label">{t.label}</span>
@@ -53,10 +55,10 @@ export default function AdminPage() {
         <div className="mb-4 flex h-10 w-full items-center justify-center min-[1360px]:justify-start min-[1360px]:px-2">
           <Link to="/" className="flex items-center gap-2.5" aria-label="Back to MistEra SMP">
             <img src={LOGO_MARK} alt="" width={36} height={36} className="logo-plate h-9 w-9 object-contain" />
-            <span className="rail-label font-display text-[15px] font-semibold tracking-tight">Admin Panel</span>
+            <span className="rail-label font-display text-[15px] font-semibold tracking-tight">{me?.isAdmin ? 'Admin Panel' : 'Moderation'}</span>
           </Link>
         </div>
-        <nav className="flex w-full flex-col items-center gap-1 min-[1360px]:items-stretch">{TABS.map(item)}</nav>
+        <nav className="flex w-full flex-col items-center gap-1 min-[1360px]:items-stretch">{tabs.map(item)}</nav>
         <div className="mt-auto flex w-full flex-col items-center gap-1 pt-4 min-[1360px]:items-stretch">
           <Link to="/" title="Back to site" aria-label="Back to site" className="rail-link"><ArrowLeft /><span className="rail-label">Back to site</span></Link>
         </div>
@@ -65,14 +67,14 @@ export default function AdminPage() {
       {/* Tablets and phones: scrollable section strip */}
       <nav className="dash-strip" aria-label="Admin sections">
         <Link to="/" title="Back to site" aria-label="Back to site" className="rail-link"><ArrowLeft /></Link>
-        {TABS.map(item)}
+        {tabs.map(item)}
       </nav>
 
       <div className="dash-main">
         <div className="dash-content">
           <header className="mb-5 flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm text-muted-foreground">Admin Panel - @{me?.profile.username}</p>
+              <p className="text-sm text-muted-foreground">{me?.isAdmin ? 'Admin Panel' : 'Moderation'} - @{me?.profile.username}</p>
               <h1 className="mt-1 text-2xl font-semibold md:text-3xl">{cur.label}</h1>
             </div>
             <ThemeToggle />

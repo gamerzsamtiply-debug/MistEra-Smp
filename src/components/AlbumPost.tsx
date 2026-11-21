@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Eye, Heart, Loader2, MessageCircle, Send, Trash2 } from 'lucide-react';
+import { Download, Eye, Heart, Loader2, MessageCircle, Send, Trash2 } from 'lucide-react';
 import { addAlbumComment, deleteAlbumComment, listAlbumComments, toggleAlbumLike, trackAlbumView, type AlbumComment, type AlbumItem } from '@/lib/api';
 import { visitorId } from '@/lib/visitor';
 import { sfx } from '@/lib/sfx';
 import { loginWithRedirect, useAuth } from '@/lib/auth';
 import { Input } from '@project/components/ui/input';
 import { Button } from '@project/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@project/components/ui/dialog';
 import { cn } from '@project/components/lib/utils';
 import { UserAvatar } from './UserChip';
 import Media from './Media';
 import { albumAlt } from '../lib/format';
+import { downloadUrl } from '../lib/media';
 import { run } from '../lib/errors';
 
 const CAPTION_LIMIT = 30;
@@ -138,6 +140,8 @@ export default function AlbumPost({ post }: { post: AlbumItem }) {
   const [comments, setComments] = useState(post.commentCount);
   const [showComments, setShowComments] = useState(false);
   const [views, setViews] = useState(post.viewCount ?? 0);
+  const [viewer, setViewer] = useState(false);
+  const dl = downloadUrl(post.imageUrl, `mistera-smp-${post.uploader?.username ?? 'album'}`);
   const ref = useRef<HTMLElement>(null);
 
   // A view is counted when at least half of the post has been on screen for a second (once per person per post).
@@ -182,7 +186,9 @@ export default function AlbumPost({ post }: { post: AlbumItem }) {
           <><UserAvatar username="??" className="h-10 w-10" /><span><span className="block text-sm font-semibold">Former member</span><span className="block text-xs text-muted-foreground">{ago(post.submittedAt)}</span></span></>
         )}
       </header>
-      <Media type={post.mediaType} src={post.imageUrl} alt={albumAlt(post)} className="max-h-[70vh] w-full bg-secondary object-contain" />
+      {post.mediaType === 'video'
+        ? <Media type={post.mediaType} src={post.imageUrl} alt={albumAlt(post)} className="max-h-[70vh] w-full bg-secondary object-contain" />
+        : <button type="button" onClick={() => setViewer(true)} className="block w-full cursor-zoom-in" aria-label="Open picture"><Media type={post.mediaType} src={post.imageUrl} alt={albumAlt(post)} className="max-h-[70vh] w-full bg-secondary object-contain" /></button>}
       <div className="p-4">
         <div className="flex items-center gap-5">
           <button type="button" onClick={like} aria-pressed={liked} aria-label={liked ? 'Unlike' : 'Like'} className={cn('like-btn inline-flex items-center gap-1.5 text-sm font-medium transition-colors', liked ? 'text-rose-500' : 'text-muted-foreground hover:text-foreground')}>
@@ -191,11 +197,22 @@ export default function AlbumPost({ post }: { post: AlbumItem }) {
           <button type="button" onClick={() => setShowComments((s) => !s)} aria-expanded={showComments} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             <MessageCircle className="h-5 w-5" />{comments}
           </button>
+          <a href={dl} download aria-label={post.mediaType === 'video' ? 'Download video' : 'Download picture'} title="Download" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"><Download className="h-5 w-5" /></a>
           <span className="ml-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground" title={`${views} views`} aria-label={`${views} views`}><Eye className="h-5 w-5" />{views}</span>
         </div>
         <Caption text={post.caption} />
         {showComments && <Comments postId={post.id} onCount={(d) => setComments((n) => Math.max(0, n + d))} />}
       </div>
+      {post.mediaType !== 'video' && (
+        <Dialog open={viewer} onOpenChange={setViewer}>
+          <DialogContent className="max-h-[94vh] max-w-4xl gap-3 overflow-y-auto p-3">
+            <DialogTitle className="sr-only">Picture by @{post.uploader?.username ?? 'a former member'}</DialogTitle>
+            <DialogDescription className="sr-only">Full-size picture. Use the Download button to save it.</DialogDescription>
+            <img src={post.imageUrl} alt={albumAlt(post)} className="max-h-[78vh] w-full rounded-lg bg-black object-contain" />
+            <div className="flex justify-end"><Button asChild><a href={dl} download><Download className="mr-2 h-4 w-4" />Download</a></Button></div>
+          </DialogContent>
+        </Dialog>
+      )}
     </article>
   );
 }
