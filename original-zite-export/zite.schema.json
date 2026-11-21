@@ -1,0 +1,855 @@
+{
+  "tables": [
+    {
+      "id": "tnX9XyoM2xb",
+      "sdkName": "siteSettings",
+      "name": "Site Settings",
+      "primaryFieldId": "fn3jwcaxV7q",
+      "fields": [
+        {
+          "id": "fn3jwcaxV7q",
+          "sdkName": "key",
+          "definition": {
+            "name": "Key",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fuPuJjvg96T",
+          "sdkName": "serverAddress",
+          "definition": {
+            "name": "Server Address",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fm8YZBNSSdu",
+          "sdkName": "serverPort",
+          "definition": {
+            "name": "Server Port",
+            "type": "number",
+            "template": {
+              "numberFormat": "no_separator",
+              "decimalPlaces": 0
+            }
+          }
+        },
+        {
+          "id": "f17cWJLn1cA",
+          "sdkName": "platform",
+          "definition": {
+            "name": "Platform",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f5u9gkYLzH3",
+          "sdkName": "serverStatus",
+          "definition": {
+            "name": "Server Status",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "33P1",
+                  "label": "Online",
+                  "color": "purple"
+                },
+                {
+                  "value": "ifvo",
+                  "label": "Offline",
+                  "color": "orange"
+                },
+                {
+                  "value": "9tRG",
+                  "label": "Restarting",
+                  "color": "blue"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "fvNA8FJLwqu",
+          "sdkName": "discordUrl",
+          "definition": {
+            "name": "Discord URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fohYQbzUR89",
+          "sdkName": "voteUrl",
+          "definition": {
+            "name": "Vote URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "faxtPRx9gBp",
+          "sdkName": "ticketUrl",
+          "definition": {
+            "name": "Ticket URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fp46enK9DRq",
+          "sdkName": "heroTagline",
+          "definition": {
+            "name": "Hero Tagline",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fsLGrwjaxR5",
+          "sdkName": "introText",
+          "definition": {
+            "name": "Intro Text",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fekhBfZctqW",
+          "sdkName": "maintenanceMode",
+          "definition": {
+            "name": "Maintenance Mode",
+            "type": "checkbox",
+            "template": {}
+          }
+        },
+        {
+          "id": "f2cA3gULjaW",
+          "sdkName": "maintenanceMessage",
+          "definition": {
+            "name": "Maintenance Message",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fq5cJMjGpSb",
+          "sdkName": "heroImage",
+          "definition": {
+            "name": "Hero Image",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fcnqxt7dZhP",
+          "sdkName": "galleryImageOne",
+          "definition": {
+            "name": "Gallery Image One",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fd3nx4mw97T",
+          "sdkName": "galleryImageTwo",
+          "definition": {
+            "name": "Gallery Image Two",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "f6kBKuv5d5d",
+          "sdkName": "bannerImage",
+          "definition": {
+            "name": "Banner Image",
+            "type": "url",
+            "template": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "ta2UAFYAEs6",
+      "sdkName": "joinSteps",
+      "name": "Join Steps",
+      "primaryFieldId": "fjJnwSoMdB9",
+      "fields": [
+        {
+          "id": "fjJnwSoMdB9",
+          "sdkName": "title",
+          "definition": {
+            "name": "Title",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f6kpB3fuaBs",
+          "sdkName": "slot",
+          "definition": {
+            "name": "Slot",
+            "type": "number",
+            "template": {
+              "numberFormat": "local",
+              "decimalPlaces": 0
+            }
+          }
+        },
+        {
+          "id": "fsb4cozMwpe",
+          "sdkName": "instructions",
+          "definition": {
+            "name": "Instructions",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f9oTKJrXVcu",
+          "sdkName": "imageUrl",
+          "definition": {
+            "name": "Image URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "f88NFaVH3RA",
+          "sdkName": "enabled",
+          "definition": {
+            "name": "Enabled",
+            "type": "checkbox",
+            "template": {}
+          }
+        },
+        {
+          "id": "foQ9L8iqqCx",
+          "sdkName": "sortOrder",
+          "definition": {
+            "name": "Sort Order",
+            "type": "number",
+            "template": {
+              "numberFormat": "local",
+              "decimalPlaces": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "t2iGh4aagCF",
+      "sdkName": "profiles",
+      "name": "Profiles",
+      "primaryFieldId": "fd9rbvv2C2X",
+      "fields": [
+        {
+          "id": "fd9rbvv2C2X",
+          "sdkName": "username",
+          "definition": {
+            "name": "Username",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "facGDKoG5a3",
+          "sdkName": "user",
+          "definition": {
+            "name": "User",
+            "type": "user",
+            "template": {
+              "internalOnly": false,
+              "allowMultiple": false,
+              "deleteRowWhenUserDeleted": true
+            }
+          }
+        },
+        {
+          "id": "fmn2sDNrA8U",
+          "sdkName": "bio",
+          "definition": {
+            "name": "Bio",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f1q9FKZDoVA",
+          "sdkName": "avatarUrl",
+          "definition": {
+            "name": "Avatar URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fngC2idUH4L",
+          "sdkName": "role",
+          "definition": {
+            "name": "Role",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "sNdV",
+                  "label": "Owner",
+                  "color": "purple"
+                },
+                {
+                  "value": "8HjJ",
+                  "label": "Admin",
+                  "color": "orange"
+                },
+                {
+                  "value": "foe3",
+                  "label": "Moderator",
+                  "color": "blue"
+                },
+                {
+                  "value": "3hti",
+                  "label": "Staff",
+                  "color": "gray"
+                },
+                {
+                  "value": "aGgw",
+                  "label": "Member",
+                  "color": "red"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "fsoTy8cm8ni",
+          "sdkName": "joinedAt",
+          "definition": {
+            "name": "Joined At",
+            "type": "created_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "t8FNZmVsiRF",
+      "sdkName": "partners",
+      "name": "Partners",
+      "primaryFieldId": "fn4X1qbTnt5",
+      "fields": [
+        {
+          "id": "fn4X1qbTnt5",
+          "sdkName": "name",
+          "definition": {
+            "name": "Name",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fr9n4NmdnFo",
+          "sdkName": "category",
+          "definition": {
+            "name": "Category",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "s2hu",
+                  "label": "Discord",
+                  "color": "purple"
+                },
+                {
+                  "value": "nCd7",
+                  "label": "Hosting",
+                  "color": "orange"
+                },
+                {
+                  "value": "1YUt",
+                  "label": "Shop",
+                  "color": "blue"
+                },
+                {
+                  "value": "naNo",
+                  "label": "Server",
+                  "color": "gray"
+                },
+                {
+                  "value": "4DTz",
+                  "label": "SMP",
+                  "color": "red"
+                },
+                {
+                  "value": "im8R",
+                  "label": "Community",
+                  "color": "yellow"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "fi2REFeWHt8",
+          "sdkName": "description",
+          "definition": {
+            "name": "Description",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f8Rc8DgnSnK",
+          "sdkName": "logoUrl",
+          "definition": {
+            "name": "Logo URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fbY8rh3TMXd",
+          "sdkName": "websiteUrl",
+          "definition": {
+            "name": "Website URL",
+            "type": "url",
+            "template": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "t1QCJS5vDr4",
+      "sdkName": "posts",
+      "name": "Posts",
+      "primaryFieldId": "fgKeiiQUyVy",
+      "fields": [
+        {
+          "id": "fgKeiiQUyVy",
+          "sdkName": "title",
+          "definition": {
+            "name": "Title",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f3BA7pcUZrP",
+          "sdkName": "kind",
+          "definition": {
+            "name": "Kind",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "m9aM",
+                  "label": "Announcement",
+                  "color": "purple"
+                },
+                {
+                  "value": "4TPm",
+                  "label": "Update",
+                  "color": "orange"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "f5XrUsKLuG5",
+          "sdkName": "body",
+          "definition": {
+            "name": "Body",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fajkFBrVBnY",
+          "sdkName": "imageUrl",
+          "definition": {
+            "name": "Image URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fdaWzWUX9ti",
+          "sdkName": "published",
+          "definition": {
+            "name": "Published",
+            "type": "checkbox",
+            "template": {}
+          }
+        },
+        {
+          "id": "fdKSwupB8aH",
+          "sdkName": "publishedAt",
+          "definition": {
+            "name": "Published At",
+            "type": "datetime",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tu4BL2b4n8J",
+      "sdkName": "contentPages",
+      "name": "Content Pages",
+      "primaryFieldId": "f3cnymLsboc",
+      "fields": [
+        {
+          "id": "f3cnymLsboc",
+          "sdkName": "slug",
+          "definition": {
+            "name": "Slug",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fuMjq5Yhdb8",
+          "sdkName": "title",
+          "definition": {
+            "name": "Title",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f6M2gM6s243",
+          "sdkName": "content",
+          "definition": {
+            "name": "Content",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f88cJfRi7dZ",
+          "sdkName": "published",
+          "definition": {
+            "name": "Published",
+            "type": "checkbox",
+            "template": {}
+          }
+        },
+        {
+          "id": "f4UvRCvVQBr",
+          "sdkName": "updatedAt",
+          "definition": {
+            "name": "Updated At",
+            "type": "updated_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tbUpN9CapAX",
+      "sdkName": "albumSubmissions",
+      "name": "Album Submissions",
+      "primaryFieldId": "ffB2gVWtVFR",
+      "fields": [
+        {
+          "id": "ffB2gVWtVFR",
+          "sdkName": "caption",
+          "definition": {
+            "name": "Caption",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "ftyLysAFiZH",
+          "sdkName": "imageUrl",
+          "definition": {
+            "name": "Image URL",
+            "type": "url",
+            "template": {}
+          }
+        },
+        {
+          "id": "fdN7GhpHsEu",
+          "sdkName": "uploader",
+          "definition": {
+            "name": "Uploader",
+            "type": "user",
+            "template": {
+              "internalOnly": false,
+              "allowMultiple": false,
+              "deleteRowWhenUserDeleted": false
+            }
+          }
+        },
+        {
+          "id": "fieyrgWUuud",
+          "sdkName": "status",
+          "definition": {
+            "name": "Status",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "jfd2",
+                  "label": "Pending",
+                  "color": "purple"
+                },
+                {
+                  "value": "93Yy",
+                  "label": "Approved",
+                  "color": "orange"
+                },
+                {
+                  "value": "2j2T",
+                  "label": "Declined",
+                  "color": "blue"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "fj1BcDkFwaj",
+          "sdkName": "submittedAt",
+          "definition": {
+            "name": "Submitted At",
+            "type": "created_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "t1FzGSUKb57",
+      "sdkName": "suggestions",
+      "name": "Suggestions",
+      "primaryFieldId": "f954qsEWPQN",
+      "fields": [
+        {
+          "id": "f954qsEWPQN",
+          "sdkName": "title",
+          "definition": {
+            "name": "Title",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fckQP3MoJEq",
+          "sdkName": "description",
+          "definition": {
+            "name": "Description",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "faLaESiM4Ad",
+          "sdkName": "author",
+          "definition": {
+            "name": "Author",
+            "type": "user",
+            "template": {
+              "internalOnly": false,
+              "allowMultiple": false,
+              "deleteRowWhenUserDeleted": false
+            }
+          }
+        },
+        {
+          "id": "faZHxpUHz1M",
+          "sdkName": "status",
+          "definition": {
+            "name": "Status",
+            "type": "single_select",
+            "template": {
+              "options": [
+                {
+                  "value": "nhPp",
+                  "label": "Open",
+                  "color": "purple"
+                },
+                {
+                  "value": "oftM",
+                  "label": "Under Review",
+                  "color": "orange"
+                },
+                {
+                  "value": "sSX4",
+                  "label": "Accepted",
+                  "color": "blue"
+                },
+                {
+                  "value": "k2k8",
+                  "label": "Declined",
+                  "color": "gray"
+                }
+              ],
+              "disableColors": false
+            }
+          }
+        },
+        {
+          "id": "fnWb5ugYATC",
+          "sdkName": "submittedAt",
+          "definition": {
+            "name": "Submitted At",
+            "type": "created_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "tiFtwFYmenw",
+      "sdkName": "activityLogs",
+      "name": "Activity Logs",
+      "primaryFieldId": "fokYCvpojvC",
+      "fields": [
+        {
+          "id": "fokYCvpojvC",
+          "sdkName": "action",
+          "definition": {
+            "name": "Action",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f5iT1n6RmLT",
+          "sdkName": "adminEmail",
+          "definition": {
+            "name": "Admin Email",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fjh2GXsBvGf",
+          "sdkName": "resource",
+          "definition": {
+            "name": "Resource",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fkFF2kVMJrf",
+          "sdkName": "details",
+          "definition": {
+            "name": "Details",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f9y4yZCqAC5",
+          "sdkName": "loggedAt",
+          "definition": {
+            "name": "Logged At",
+            "type": "created_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "t2njEFWGw4Y",
+      "sdkName": "errorLogs",
+      "name": "Error Logs",
+      "primaryFieldId": "frFgjzAG6jS",
+      "fields": [
+        {
+          "id": "frFgjzAG6jS",
+          "sdkName": "operation",
+          "definition": {
+            "name": "Operation",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fmmS22q6Cdw",
+          "sdkName": "category",
+          "definition": {
+            "name": "Category",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fdDiZU6zq2A",
+          "sdkName": "correlationId",
+          "definition": {
+            "name": "Correlation ID",
+            "type": "single_line_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "f78kkMPsU3E",
+          "sdkName": "message",
+          "definition": {
+            "name": "Message",
+            "type": "long_text",
+            "template": {}
+          }
+        },
+        {
+          "id": "fvMojtwBNXY",
+          "sdkName": "loggedAt",
+          "definition": {
+            "name": "Logged At",
+            "type": "created_at",
+            "template": {
+              "timezone": "",
+              "dateFormat": "local",
+              "timeFormat": "12h",
+              "displayTimeZone": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

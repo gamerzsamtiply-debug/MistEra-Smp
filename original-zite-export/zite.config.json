@@ -1,0 +1,18 @@
+{
+  "id": "5zcagqvsd6",
+  "accessMode": "external",
+  "authentication": {
+    "signup": "open",
+    "authenticationMethods": {
+      "emailSignIn": true,
+      "googleSignIn": true,
+      "sso": false
+    }
+  },
+  "seoSettings": {
+    "title": "MistEra SMP — Bangladesh Minecraft Bedrock SMP",
+    "description": "Official website of MistEra SMP, a private whitelisted 24/7 Minecraft Bedrock survival community based in Bangladesh.",
+    "thumbnailUrl": "https://images.fillout.com/orgid-872088/flowpublicid-default/widgetid-default/izC6Y3nYkqxHzT27wKMwCZ/pasted-image-1794900117962-8prmhkmt.png",
+    "faviconUrl": "https://images.fillout.com/orgid-872088/flowpublicid-default/widgetid-default/xjP4jVuf1pyXaa8YHDiC6N/pasted-image-1794900117871-q8mwoogl.png"
+  }
+}
