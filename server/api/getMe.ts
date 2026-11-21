@@ -10,7 +10,7 @@ export default authEndpoint(z.object({}), async ({ user }) => {
   const staff = mustOr(sr, 'staff_members.mine', null as { id: string; position: string } | null);
   return {
     profile: { id: p.id, username: p.username ?? '', bio: p.bio ?? '', avatarUrl: p.avatar_url ?? '', bannerUrl: p.banner_url ?? '', role: displayRole(p.role) },
-    staffPosition: staff ? (p.role === 'Owner' ? 'Admin' : staff.position) : null,
+    staffPosition: staff ? (p.role === 'Owner' ? 'Owner' : staff.position) : null,
     isOwner: p.role === 'Owner',
     /** The real site-owner account (the only one that can grant or remove the Owner role). */
     isPrimaryOwner: isOwnerUser(user, p.role),

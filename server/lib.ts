@@ -8,11 +8,8 @@ import type { ProfileRow, PublicUser, SettingsRow, Role, StaffRow, StaffPosition
 export const STAFF_ROLES: Role[] = ['Owner', 'Admin', 'Moderator', 'Staff'];
 export const STAFF_POSITIONS: StaffPosition[] = ['Owner', 'Admin', 'Moderator', 'Developer', 'Builder', 'Helper', 'Staff'];
 
-/**
- * The account behind OWNER_EMAIL keeps the internal "Owner" access role (full control), but it is always
- * presented to the public as "Admin". "Owner" is a separate, display-only staff position that admins can give out.
- */
-export const displayRole = (role: Role | null | undefined): Role => (role === 'Owner' ? 'Admin' : role ?? 'Member');
+/** Roles are shown exactly as stored: an account with the Owner role is displayed as "Owner" (full control). */
+export const displayRole = (role: Role | null | undefined): Role => role ?? 'Member';
 
 /**
  * Only the configured owner account can hold the internal Owner role.
@@ -251,7 +248,7 @@ export interface StaffOut {
   /** Linked registered account (public profile id), if the staff member linked one. */
   profileId: string | null;
   username: string | null;
-  /** True for the automatic entry of the OWNER_EMAIL account (shown as Admin, not editable). */
+  /** True for the automatic entry of the OWNER_EMAIL account (shown as Owner, not editable). */
   system: boolean;
 }
 
@@ -262,7 +259,7 @@ const positionRank = (p: string) => {
 
 /**
  * The public team: every staff entry added by admins (no account needed) plus the OWNER_EMAIL account,
- * which always appears as "Admin". Missing table (migration not applied) degrades to just the owner entry.
+ * which always appears as "Owner". Missing table (migration not applied) degrades to just the owner entry.
  */
 export async function buildStaffList(): Promise<StaffOut[]> {
   const [sr, pr] = await Promise.all([
@@ -285,8 +282,8 @@ export async function buildStaffList(): Promise<StaffOut[]> {
       id: r.id,
       name: r.name ?? '',
       avatarUrl: r.avatar_url || p?.avatar_url || '',
-      // The owner account is always presented as Admin, whatever position it was linked to.
-      position: p?.role === 'Owner' ? 'Admin' : ((r.position ?? 'Staff') as StaffPosition),
+      // An account that holds the Owner role is always listed as Owner, whatever position it was linked to.
+      position: p?.role === 'Owner' ? 'Owner' : ((r.position ?? 'Staff') as StaffPosition),
       profileId: p?.id ?? null,
       username: p?.username ?? null,
       system: false,
@@ -294,7 +291,7 @@ export async function buildStaffList(): Promise<StaffOut[]> {
   });
   for (const o of owners) {
     if (out.some((s) => s.profileId === o.id)) continue;
-    out.push({ id: `owner-${o.id}`, name: o.username ?? 'Admin', avatarUrl: o.avatar_url ?? '', position: 'Admin', profileId: o.id, username: o.username ?? null, system: true });
+    out.push({ id: `owner-${o.id}`, name: o.username ?? 'Owner', avatarUrl: o.avatar_url ?? '', position: 'Owner', profileId: o.id, username: o.username ?? null, system: true });
   }
   return out.sort((a, b) => positionRank(a.position) - positionRank(b.position));
 }
