@@ -16,6 +16,12 @@ export default authEndpoint(
     if (name.length < 2 || name.length > 40) throw fail('BAD_REQUEST', 'Name must be 2–40 characters.');
     // Same rule as role changes: only the owner account hands out or edits the top positions.
     if (me.role !== 'Owner' && RESTRICTED.includes(input.position)) throw fail('FORBIDDEN', 'Only the site owner can assign the Owner or Admin position.');
+    // There is only one Owner: pick a different position for the current one before giving it to someone else.
+    if (input.position === 'Owner') {
+      const o = must(await db().from('staff_members').select('id,name').eq('position', 'Owner').limit(5), 'staff_members.owner') as { id: string; name: string }[];
+      const other = o.find((x) => x.id !== input.id);
+      if (other) throw fail('BAD_REQUEST', `${other.name} is already the Owner. Change their position first, then give Owner to someone else.`);
+    }
     const record = { name, avatar_url: cleanUrl(input.avatarUrl), position: input.position };
     if (input.id) {
       if (!isUuid(input.id)) throw fail('NOT_FOUND', 'That staff member no longer exists.');

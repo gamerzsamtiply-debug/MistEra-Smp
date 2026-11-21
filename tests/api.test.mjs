@@ -97,9 +97,9 @@ await test('first login creates a Member profile; usernames are unique and valid
   assert.notEqual(a.profile.username, b.profile.username);
   assert.match(a.profile.username, /^[a-zA-Z0-9_]{3,20}$/); assert.match(b.profile.username, /^[a-zA-Z0-9_]{3,20}$/);
 });
-await test('owner account (Google-verified email) has full access and is DISPLAYED as Owner; look-alike stays Member', async () => {
+await test('owner account (Google-verified email) has full access but is DISPLAYED as Admin; look-alike stays Member', async () => {
   users();
-  const o = await ok('getMe', {}, 't-owner'); assert.equal(o.profile.role, 'Owner'); assert.equal(o.isOwner, true); assert.equal(o.isAdmin, true);
+  const o = await ok('getMe', {}, 't-owner'); assert.equal(o.profile.role, 'Admin'); assert.equal(o.isOwner, true); assert.equal(o.isAdmin, true);
   const f = await ok('getMe', {}, 't-fake-owner'); assert.equal(f.profile.role, 'Member'); assert.equal(f.isAdmin, false);
   await denied('adminGetSettings', {}, 't-fake-owner', 403, 'FORBIDDEN');
 });
