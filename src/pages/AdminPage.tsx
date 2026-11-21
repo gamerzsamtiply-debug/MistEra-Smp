@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, LayoutDashboard, Server, ListOrdered, FileText, Newspaper, History, Users, UserRound, Building2, Images, Lightbulb, ScrollText, Bug, MessageSquare, Eye } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Server, ListOrdered, FileText, Newspaper, History, Users, UserRound, Building2, Lightbulb, ScrollText, Bug, MessageSquare, Eye } from 'lucide-react';
 import { cn } from '@project/components/lib/utils';
 import { useSite } from '../lib/site';
 import { LOGO_MARK } from '../lib/brand';
@@ -13,7 +13,6 @@ import PostsTab from './admin/PostsTab';
 import UsersTab from './admin/UsersTab';
 import PartnersTab from './admin/PartnersTab';
 import StaffTab from './admin/StaffTab';
-import AlbumTab from './admin/AlbumTab';
 import SuggestionsTab from './admin/SuggestionsTab';
 import LogsTab from './admin/LogsTab';
 import FeedbackTab from './admin/FeedbackTab';
@@ -30,7 +29,6 @@ const TABS = [
   { id: 'staff', label: 'Staff', icon: UserRound, el: <StaffTab /> },
   { id: 'users', label: 'Users & Roles', icon: Users, el: <UsersTab /> },
   { id: 'partners', label: 'Partners', icon: Building2, el: <PartnersTab /> },
-  { id: 'album', label: 'Album Approvals', icon: Images, el: <AlbumTab /> },
   { id: 'sugg', label: 'Suggestions', icon: Lightbulb, el: <SuggestionsTab /> },
   { id: 'feedback', label: 'Feedback', icon: MessageSquare, el: <FeedbackTab /> },
   { id: 'logs', label: 'Activity Logs', icon: ScrollText, el: <LogsTab type="activity" /> },
@@ -40,8 +38,8 @@ const TABS = [
 export default function AdminPage() {
   const { me } = useSite();
   // Admins and the Owner see everything; Moderators only get the album approvals.
-  const tabs = me?.isAdmin ? TABS : TABS.filter((t) => t.id === 'album');
-  const [tab, setTab] = useState(me?.isAdmin ? 'overview' : 'album');
+  const tabs = me?.isAdmin ? TABS : TABS.filter((t) => t.id === 'overview');
+  const [tab, setTab] = useState('overview');
   const cur = tabs.find((t) => t.id === tab) ?? tabs[0];
   const item = (t: (typeof TABS)[number]) => (
     <button key={t.id} type="button" onClick={() => setTab(t.id)} title={t.label} aria-label={t.label} aria-current={tab === t.id ? 'page' : undefined} className="rail-link">

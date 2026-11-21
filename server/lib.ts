@@ -67,8 +67,8 @@ async function createProfile(u: AuthUser, owner: boolean): Promise<ProfileRow> {
 }
 
 /**
- * Ensures the signed-in user has a profile row. The Owner role is assigned only to the
- * verified owner email, and removed from anyone else — it can never be escalated to.
+ * Ensures the signed-in user has a profile row. The verified owner account always holds Owner; look-alike accounts
+ * are demoted. Other accounts can only hold Owner if the real owner granted it (adminSetRole).
  */
 export async function ensureProfile(u: AuthUser): Promise<ProfileRow> {
   let p = await findProfileByUser(u.id);
@@ -77,7 +77,9 @@ export async function ensureProfile(u: AuthUser): Promise<ProfileRow> {
   if (owner && p.role !== 'Owner') {
     must(await db().from('profiles').update({ role: 'Owner' }).eq('id', p.id), 'profiles.promoteOwner');
     p = { ...p, role: 'Owner' };
-  } else if (!owner && p.role === 'Owner') {
+  } else if (!owner && p.role === 'Owner' && u.email.trim().toLowerCase() === ownerEmail()) {
+    // Someone using the owner's e-mail address without being the real owner account is always demoted.
+    // (An Owner role held by an account with a DIFFERENT e-mail was granted by the site owner in Users & Roles and stays.)
     must(await db().from('profiles').update({ role: 'Member' }).eq('id', p.id), 'profiles.demoteOwner');
     p = { ...p, role: 'Member' };
   }

@@ -30,7 +30,7 @@ test('homepage targets the brand and the Bangladesh Bedrock SMP query', () => {
 test('every public route declared in App.tsx is indexable (in ROUTES) or deliberately private', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const paths = [...app.matchAll(/<Route path="(\/[^":*]*)"/g)].map((m) => m[1]);
-  const privatePaths = new Set(['/profile', '/suggestions', '/feedback', '/admin', '/login', '/reset-password', '/401', '/403', '/500', '/503', '/u']);
+  const privatePaths = new Set(['/profile', '/welcome', '/suggestions', '/feedback', '/admin', '/login', '/reset-password', '/401', '/403', '/500', '/503', '/u']);
   for (const p of paths) {
     if (p === '/u/') continue;
     assert.ok(ROUTES.some((r) => r.path === p) || privatePaths.has(p) || p.startsWith('/u'), `route ${p} is neither in ROUTES (sitemap) nor marked private`);
@@ -39,7 +39,7 @@ test('every public route declared in App.tsx is indexable (in ROUTES) or deliber
 });
 
 test('private/unknown pages are noindex and carry no canonical or description', () => {
-  for (const p of ['/login', '/admin', '/profile', '/suggestions', '/feedback', '/reset-password', '/u/abc', '/nope', '/403']) {
+  for (const p of ['/login', '/admin', '/profile', '/welcome', '/suggestions', '/feedback', '/reset-password', '/u/abc', '/nope', '/403']) {
     const s = resolveSeo(p);
     assert.match(s.robots, /noindex/, p);
     assert.equal(s.canonical, undefined, p);

@@ -14,7 +14,7 @@ import { fmtDate } from '../../lib/format';
 
 type St = 'Pending' | 'Approved' | 'Declined';
 
-export default function AlbumTab() {
+export default function AlbumTab({ onChanged }: { onChanged?: () => void } = {}) {
   const { me } = useSite();
   const [status, setStatus] = useState<St>('Pending');
   const { data, error, loading, reload, setData } = useLoad(`Admin album ${status}`, () => adminListAlbum({ status }), [status]);
@@ -22,6 +22,7 @@ export default function AlbumTab() {
     try {
       await run('Album review', () => adminReviewAlbum({ id, action: action as 'Approved' }), { success: action === 'Delete' ? 'Image deleted' : `Image ${action.toLowerCase()}`, failTitle: 'Album review failed' });
       setData((d) => d && { items: d.items.filter((i) => i.id !== id) });
+      onChanged?.();
     } catch { /* shown */ }
   };
   return (

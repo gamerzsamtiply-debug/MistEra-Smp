@@ -53,7 +53,7 @@
       "destination": "/api/seo?p=llms-full"
     },
     {
-      "source": "/((?!api/|assets/|images/|fonts/|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)",
+      "source": "/((?!api/|assets/|images/|fonts/|favicon[^/]*|apple-touch-icon\\.png|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)",
       "destination": "/app-shell"
     }
   ],
@@ -114,6 +114,15 @@
     },
     {
       "source": "/profile",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/welcome",
       "headers": [
         {
           "key": "X-Robots-Tag",

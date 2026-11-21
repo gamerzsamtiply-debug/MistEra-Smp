@@ -103,11 +103,16 @@ await test('owner account (Google-verified email) has full access but is DISPLAY
   const f = await ok('getMe', {}, 't-fake-owner'); assert.equal(f.profile.role, 'Member'); assert.equal(f.isAdmin, false);
   await denied('adminGetSettings', {}, 't-fake-owner', 403, 'FORBIDDEN');
 });
-await test('a stale Owner role on a non-owner is demoted automatically', async () => {
+await test('an Owner role on a look-alike of the owner e-mail is demoted; one granted by the real owner stays', async () => {
   users();
-  await ok('getMe', {}, 't-m1');
-  fake.rows('profiles').find((p) => p.username === 'steve').role = 'Owner';
-  assert.equal((await ok('getMe', {}, 't-m1')).profile.role, 'Member');
+  await ok('getMe', {}, 't-m1'); await ok('getMe', {}, 't-owner'); await ok('getMe', {}, 't-fake-owner'); await ok('getMe', {}, 't-admin');
+  fake.rows('profiles').find((p) => p.user_id === 't-fake-owner').role = 'Owner';
+  assert.equal((await ok('getMe', {}, 't-fake-owner')).profile.role, 'Member');
+  const list = (await ok('adminListUsers', {}, 't-owner')).users; const id = (n) => list.find((u) => u.username === n).id;
+  await denied('adminSetRole', { profileId: id('steve'), role: 'Owner' }, 't-admin', 403);      // an Admin can't make Owners
+  await ok('adminSetRole', { profileId: id('steve'), role: 'Owner' }, 't-owner');                // the real owner can
+  const me = await ok('getMe', {}, 't-m1'); assert.equal(me.isOwner, true); assert.equal(me.isPrimaryOwner, false); assert.equal(me.isAdmin, true);
+  await ok('adminSetRole', { profileId: id('steve'), role: 'Member' }, 't-owner');               // and can take it back
 });
 await test('role rules: only Owner grants/removes Admin; Owner & self are locked', async () => {
   await seedStaff();

@@ -13,7 +13,7 @@ import { useSite } from '../../lib/site';
 import { run } from '../../lib/errors';
 import { fmtDate } from '../../lib/format';
 
-const FILTERS = ['All', 'Admin', 'Moderator', 'Staff', 'Member'];
+const FILTERS = ['All', 'Owner', 'Admin', 'Moderator', 'Staff', 'Member'];
 const PAGE = 20;
 
 export default function UsersTab() {
@@ -30,14 +30,14 @@ export default function UsersTab() {
     try { await run('Staff role update', () => adminSetRole({ profileId: id, role: next as 'Admin' }), { success: 'Staff role updated', failTitle: 'Failed to update staff role' }); }
     catch { setData(prev); }
   };
-  const options = me?.isOwner ? ['Admin', 'Moderator', 'Staff', 'Member'] : ['Moderator', 'Staff', 'Member'];
+  const options = me?.isPrimaryOwner ? ['Owner', 'Admin', 'Moderator', 'Staff', 'Member'] : me?.isOwner ? ['Admin', 'Moderator', 'Staff', 'Member'] : ['Moderator', 'Staff', 'Member'];
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder="Search username..." value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} /></div>
         <Select value={role} onValueChange={(v) => { setRole(v); setPage(0); }}><SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger><SelectContent>{FILTERS.map((f) => <SelectItem key={f} value={f}>{f === 'All' ? 'All roles' : f}</SelectItem>)}</SelectContent></Select>
       </div>
-      <p className="text-xs text-muted-foreground">{me?.isOwner ? 'You can grant or remove Admin access.' : 'Only the site owner can grant or remove Admin access.'} These roles control admin permissions; the public Staff page is managed in the Staff tab. The site owner account always shows as Admin and can't be changed.</p>
+      <p className="text-xs text-muted-foreground">{me?.isPrimaryOwner ? 'You can grant or remove Owner and Admin access.' : me?.isOwner ? 'You can grant or remove Admin access.' : 'Only the site owner can grant or remove Admin access.'} Owners and Admins have full permission; Moderators can approve album posts from the Dashboard. The public Staff page is managed in the Staff tab. The main owner account can't be changed.</p>
       {loading ? <Spinner /> : error ? <InlineError error={error} onRetry={reload} /> : !list.length ? <EmptyState icon={Users} title="No users found" message="Try a different search or filter." /> : (
         <>
           <div className="divide-y divide-border rounded-2xl border border-border bg-card">{list.slice(page * PAGE, page * PAGE + PAGE).map((u) => {

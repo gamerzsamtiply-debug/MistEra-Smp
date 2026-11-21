@@ -256,6 +256,12 @@ function sitemap(site: Site): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}\n  </url>`).join('\n')}\n</urlset>\n`;
 }
 
+/** Used only when the database can't be read: the always-public pages, no dates. */
+function fallbackSitemap(): string {
+  const paths = ['/', '/information', '/about', '/rules', '/staff', '/partners', '/announcements', '/updates', '/album', '/terms', '/privacy'];
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((p) => `  <url>\n    <loc>${abs(p)}</loc>\n  </url>`).join('\n')}\n</urlset>\n`;
+}
+
 async function llms(site: Site, full: boolean): Promise<string> {
   const { s } = site;
   const L: string[] = [];
@@ -310,7 +316,10 @@ export async function renderSeo(key: string, origin: string): Promise<SeoRespons
     const meta: Meta = { title, description, canonical: abs(`/${slug}`), robots: 'index, follow, max-image-preview:large', jsonLd: slug === 'about' ? structuredData(site, false) : undefined };
     return { status: 200, type: HTML, body: fillShell(shell, meta, pageBody(site, slug, page)), cache: CACHE };
   } catch (e) {
-    console.error(`[seo] ${key} failed, serving the plain app shell:`, e);
+    console.error(`[seo] ${key} failed:`, e);
+    // /sitemap.xml and /llms.txt must never answer with an HTML page (crawlers would treat it as a broken file).
+    if (key === 'sitemap') return { status: 200, type: 'application/xml; charset=utf-8', body: fallbackSitemap(), cache: 'public, s-maxage=60' };
+    if (key === 'llms' || key === 'llms-full') return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP llms.txt is temporarily unavailable. Please try again in a minute.\n', cache: 'no-store' };
     try {
       const shell = await fetchShell(origin);
       return { status: 200, type: HTML, body: shell, cache: 'no-store' };
