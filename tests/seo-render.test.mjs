@@ -66,8 +66,9 @@ await test('failures degrade to the plain app shell (never a 500); unknown keys 
   const r = await renderSeo('home', 'https://x.test'); // no settings table rows + fake works; force a broken shell fetch below
   assert.ok(r.status === 200);
   globalThis.fetch = async () => { throw new Error('down'); };
-  const r2 = await renderSeo('about', 'https://x.test');
-  assert.equal(r2.status, 503);
+  seed();
+  const r2 = await renderSeo('about', 'https://x.test'); // shell fetch is down: still a 200 with the full text (last good shell or bare shell), never a 503
+  assert.equal(r2.status, 200); assert.match(r2.body, /<h1>/); assert.match(r2.body, /rel="canonical"/); assert.ok(r2.via);
   globalThis.fetch = async () => new Response(SHELL);
   assert.equal((await renderSeo('nope', 'https://x.test')).status, 404);
 });
