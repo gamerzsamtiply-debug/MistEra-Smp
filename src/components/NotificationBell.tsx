@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, BellRing, History, MessageCircle, MessageSquare, Newspaper, UserPlus, Images } from 'lucide-react';
+import { Bell, BellRing, History, MessageSquare, Newspaper, UserPlus, Images } from 'lucide-react';
 import { toast } from 'sonner';
 import { markNotificationsRead, type AppNotification } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -16,13 +16,13 @@ const KEY = 'mistera-notif-seen';
 const readSeen = (): number => { try { return Number(localStorage.getItem(KEY)) || 0; } catch { return 0; } };
 const writeSeen = (t: number) => { try { localStorage.setItem(KEY, String(t)); } catch { /* storage unavailable */ } };
 const time = (p: PostItem) => (p.publishedAt ? new Date(p.publishedAt).getTime() : 0);
-const ICON: Record<AppNotification['type'], typeof Bell> = { follow: UserPlus, message: MessageCircle, comment: MessageSquare, post: Images, like: Bell };
+const ICON: Record<AppNotification['type'], typeof Bell> = { follow: UserPlus, comment: MessageSquare, post: Images, like: Bell };
 
 type Row = { key: string; at: number; fresh: boolean; to: string; icon: typeof Bell; head: string; title: string; actor?: AppNotification['actor'] };
 
 /**
  * Bell with a badge. For everyone: new announcements/updates. When signed in it also lists your own notifications
- * (new followers, messages, comments, posts from people you follow). The data is kept fresh by NotificationEngine.
+ * (new followers, comments, posts from people you follow). The data is kept fresh by NotificationEngine.
  */
 export default function NotificationBell() {
   const { user } = useAuth();

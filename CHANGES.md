@@ -1,4 +1,4 @@
-# Social update: glass login, follow, inbox, notifications, Gmail-only sign-up
+# Social update: glass login, follow, notifications, Gmail-only sign-up
 
 **Run first:** `supabase/migrations/0009_social_inbox_security.sql` in the Supabase SQL Editor.
 Optional env var: `SITE_URL` (e.g. https://misterasmp.fun) so the confirmation e-mail returns to your site.
@@ -7,8 +7,7 @@ In Supabase: Authentication -> Providers -> Email -> turn **Confirm email ON**, 
 - Login: only the card changed to a frosted-glass card (matches the reference). Page background and layout are untouched.
 - Sign-up: Gmail only (database trigger + API), confirmation link must be clicked, password min 10 + common-password block.
 - Login goes through `/api/login`: per-account and per-network attempt limits, unconfirmed accounts refused, "Remember me" works.
-- Follow / unfollow, follower and following counts and lists, "Add friend" page (`/people`) with search and browse.
-- Inbox (`/inbox`): message people you follow (or who already wrote to you), images and files (private bucket, signed links), edit, delete for me, delete for everyone, "edited" and "deleted" notices.
+- Follow / unfollow, follower and following counts and lists on every profile.
 - Notifications: bell now includes followers, messages, comments and posts from people you follow; the site asks to turn on device notifications; sent through a service worker (`/sw.js`) so they work on phones.
 
 # Changes in this update

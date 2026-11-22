@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Eye, Images, MessageCircle, Share2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Eye, Images, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPublicProfile } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
@@ -39,7 +39,6 @@ export default function PublicProfile() {
         social={<FollowStats profileId={p.id} followers={fol?.followers ?? p.followers ?? 0} following={p.following ?? 0} />}
         actions={<>
           {!p.isMe && <FollowButton profileId={p.id} following={fol?.following ?? !!p.followedByMe} onChange={(following, followers) => setFol({ following, followers })} />}
-          {!p.isMe && <Button asChild variant="secondary"><Link to={`/inbox/${p.id}`}><MessageCircle className="mr-2 h-4 w-4" />Message</Link></Button>}
           <Button variant="ghost" size="icon" onClick={share} aria-label="Copy profile link"><Share2 className="h-5 w-5" /></Button>
         </>}
       />

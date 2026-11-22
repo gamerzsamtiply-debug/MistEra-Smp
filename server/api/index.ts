@@ -58,14 +58,7 @@ import trackAlbumView from './trackAlbumView.js';
 import recordLogin from './recordLogin.js';
 import adminViews from './adminViews.js';
 import toggleFollow from './toggleFollow.js';
-import listPeople from './listPeople.js';
 import listFollows from './listFollows.js';
-import createMessageUpload from './createMessageUpload.js';
-import sendMessage from './sendMessage.js';
-import getThread from './getThread.js';
-import listInbox from './listInbox.js';
-import editMessage from './editMessage.js';
-import deleteMessage from './deleteMessage.js';
 import listNotifications from './listNotifications.js';
 import markNotificationsRead from './markNotificationsRead.js';
 import getBadges from './getBadges.js';
@@ -74,14 +67,7 @@ import resendConfirmation from './resendConfirmation.js';
 
 export const endpoints: Record<string, Endpoint> = {
   toggleFollow,
-  listPeople,
   listFollows,
-  createMessageUpload,
-  sendMessage,
-  getThread,
-  listInbox,
-  editMessage,
-  deleteMessage,
   listNotifications,
   markNotificationsRead,
   getBadges,

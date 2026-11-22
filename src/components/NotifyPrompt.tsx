@@ -32,7 +32,7 @@ export default function NotifyPrompt() {
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Bell className="h-5 w-5" /></span>
         <div className="min-w-0 pr-5">
           <p className="text-sm font-semibold">Turn on notifications?</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">Get an alert on your device for new posts, videos, comments, followers and messages.</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Get an alert on your device for new posts, videos, comments, and followers.</p>
         </div>
       </div>
       <div className="mt-3 flex justify-end gap-2">

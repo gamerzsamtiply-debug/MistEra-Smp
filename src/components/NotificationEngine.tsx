@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { getBadges, latestPosts, listNotifications } from '@/lib/api';
@@ -21,9 +21,7 @@ const POSTS_MS = 120_000;
 export default function NotificationEngine() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const { pathname } = useLocation();
   const navRef = useRef(nav); navRef.current = nav;
-  const pathRef = useRef(pathname); pathRef.current = pathname;
   const uid = user?.id ?? '';
 
   useEffect(() => { if (notificationPermission() === 'granted') void registerWorker(); }, []);
@@ -59,7 +57,7 @@ export default function NotificationEngine() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // personal: followers, messages, comments, posts from people you follow
+  // personal: followers, comments, posts from people you follow
   useEffect(() => {
     if (!uid) { resetNotifState(); return; }
     let alive = true;
@@ -75,9 +73,7 @@ export default function NotificationEngine() {
       const fresh = d.notifications.filter((n) => !n.read && stamp(n) > last).sort((a, b) => stamp(a) - stamp(b));
       if (!fresh.length) return;
       write(noteKey(uid), String(newest));
-      const inInbox = pathRef.current.startsWith('/inbox');
       for (const n of fresh.slice(-3)) {
-        if (n.type === 'message' && inInbox && document.visibilityState === 'visible') continue; // the chat itself shows it
         announce(n.title, n.body, n.url || '/', `n-${n.id}`);
       }
     };
@@ -85,7 +81,7 @@ export default function NotificationEngine() {
       try {
         const b = await getBadges();
         if (!alive) return;
-        setNotifState({ messages: b.messages, unread: b.notifications });
+        setNotifState({ unread: b.notifications });
         // fetch the list only when something changed (the badge call is the cheap one)
         if (first || b.notifications !== lastCount) await refreshList(first);
         lastCount = b.notifications;

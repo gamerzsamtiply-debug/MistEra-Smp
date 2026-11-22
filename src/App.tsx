@@ -24,8 +24,6 @@ const SuggestionsPage = lazy(() => import('./pages/SuggestionsPage'));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const PeoplePage = lazy(() => import('./pages/PeoplePage'));
-const InboxPage = lazy(() => import('./pages/InboxPage'));
 
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -84,9 +82,6 @@ export default function App() {
                 <Route path="/album" element={<AlbumPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/u/:id" element={<PublicProfile />} />
-                <Route path="/people" element={<PeoplePage />} />
-                <Route path="/inbox" element={<RequireAuth><InboxPage /></RequireAuth>} />
-                <Route path="/inbox/:id" element={<RequireAuth><InboxPage /></RequireAuth>} />
                 <Route path="/welcome" element={<RequireAuth><WelcomePage /></RequireAuth>} />
                 <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                 <Route path="/suggestions" element={<RequireAuth><SuggestionsPage /></RequireAuth>} />

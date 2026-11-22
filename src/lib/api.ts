@@ -197,23 +197,11 @@ export const trackAlbumView = (input: { id: string; visitorId?: string }) => cal
 export const recordLogin = (input: { method: 'password' | 'google' | 'session' }) => call<{ ok: true }>('recordLogin', input);
 export const adminViews = (input?: Any) => call<{ ready: boolean; total: number; unique: number; today: number; last7: number; daily: { day: string; views: number; visitors: number }[]; topPages: { path: string; views: number }[]; logins: { id: string; email: string; method: string; ip: string; at: string }[] }>('adminViews', input);
 
-// ───────────── Follow, inbox and notifications ─────────────
+// ───────────── Follow and notifications ─────────────
 export interface PersonCard { id: string; username: string; avatarUrl: string; role: string; isMe: boolean; following: boolean; bio?: string }
-export interface ChatMessage {
-  id: string; mine: boolean; body: string; createdAt: string; edited: boolean; deleted: boolean; read: boolean;
-  attachment: { name: string; type: string; size: number; url: string; isImage: boolean } | null;
-}
-export interface Conversation { user: { id: string; username: string; avatarUrl: string; role: string }; preview: string; mine: boolean; at: string; unread: number }
-export interface AppNotification { id: string; type: 'follow' | 'message' | 'comment' | 'post' | 'like'; title: string; body: string; url: string; read: boolean; createdAt: string; actor: { id: string; username: string; avatarUrl: string } | null }
+export interface AppNotification { id: string; type: 'follow' | 'comment' | 'post' | 'like'; title: string; body: string; url: string; read: boolean; createdAt: string; actor: { id: string; username: string; avatarUrl: string } | null }
 export const toggleFollow = (input: { profileId: string }) => call<{ following: boolean; followers: number }>('toggleFollow', input);
-export const listPeople = (input: { q?: string; offset?: number }) => call<{ people: PersonCard[]; hasMore: boolean }>('listPeople', input);
 export const listFollows = (input: { profileId: string; kind: 'followers' | 'following' }) => call<{ people: PersonCard[] }>('listFollows', input);
-export const listInbox = () => call<{ conversations: Conversation[] }>('listInbox', {});
-export const getThread = (input: { profileId: string }) => call<{ with: { id: string; username: string; avatarUrl: string; role: string }; canMessage: boolean; messages: ChatMessage[] }>('getThread', input);
-export const sendMessage = (input: { profileId: string; body?: string; attachment?: { path: string; name: string; type: string; size: number } }) => call<{ message: ChatMessage }>('sendMessage', input);
-export const editMessage = (input: { id: string; body: string }) => call<{ ok: true }>('editMessage', input);
-export const deleteMessage = (input: { id: string; scope: 'me' | 'everyone' }) => call<{ ok: true }>('deleteMessage', input);
-export const createMessageUpload = (input: { contentType: string; size: number }) => call<{ bucket: string; path: string; token: string }>('createMessageUpload', input);
 export const listNotifications = () => call<{ unread: number; notifications: AppNotification[] }>('listNotifications', {});
 export const markNotificationsRead = () => call<{ ok: true }>('markNotificationsRead', {});
-export const getBadges = () => call<{ messages: number; notifications: number }>('getBadges', {});
+export const getBadges = () => call<{ notifications: number }>('getBadges', {});

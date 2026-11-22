@@ -9,7 +9,6 @@ import { LOGO_MARK } from '../lib/brand';
 import { UserAvatar } from './UserChip';
 import ThemeToggle from './ThemeToggle';
 import NotificationBell from './NotificationBell';
-import NavSocial from './NavSocial';
 import SoundToggle from './SoundToggle';
 import { sfx } from '../lib/sfx';
 
@@ -82,7 +81,6 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="mt-auto flex w-full flex-col items-center gap-1 min-[1360px]:items-stretch">
-          <NavSocial rail />
           <button onClick={() => openHelp(settings?.ticketUrl)} title="Help" aria-label="Help" className="rail-link"><CircleHelp /><span className="rail-mini">Help</span><span className="rail-label">Help</span></button>
           <div className="flex items-center justify-center gap-1 min-[1360px]:justify-start"><NotificationBell /><ThemeToggle /><SoundToggle /></div>
           <AccountMenu compact />
@@ -94,7 +92,6 @@ export default function Navbar() {
         <Brand label />
         <div className="ml-auto flex items-center gap-1">
           <NotificationBell />
-          <NavSocial />
           <ThemeToggle />
           <SoundToggle />
           <AccountMenu />

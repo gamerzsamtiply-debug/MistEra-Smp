@@ -14,7 +14,7 @@ export async function enableSystemNotifications(): Promise<NotificationPermissio
   const result = await Notification.requestPermission();
   if (result === 'granted') {
     await registerWorker();
-    await showSystemNotification({ title: 'Notifications are on', body: 'You will see new posts, comments, followers and messages here.', url: '/', tag: 'welcome' });
+    await showSystemNotification({ title: 'Notifications are on', body: 'You will see new posts, comments and followers here.', url: '/', tag: 'welcome' });
   }
   return result;
 }
