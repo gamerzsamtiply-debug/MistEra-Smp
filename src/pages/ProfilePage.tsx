@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Trash2, Images, Eye, Share2, Pencil, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateMyProfile, myAlbum, deleteMyAlbum, claimStaff } from '@/lib/api';
+import { updateMyProfile, myAlbum, deleteMyAlbum, claimStaff, getPublicProfile } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
 import { Input } from '@project/components/ui/input';
 import { Textarea } from '@project/components/ui/textarea';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import ImageUpload from '../components/ImageUpload';
 import SubmitImageDialog from '../components/SubmitImageDialog';
 import ProfileHeader from '../components/ProfileHeader';
+import FollowStats from '../components/FollowStats';
 import Media from '../components/Media';
 import RoleBadge from '../components/RoleBadge';
 import { EmptyState, GridSkeleton, InlineError, Spinner } from '../components/States';
@@ -122,6 +123,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<'albums' | 'suggestions'>('albums');
   const [edit, setEdit] = useState(false);
   const stats = useLoad('Load my album stats', () => myAlbum({}));
+  const social = useLoad('Load my follow counts', () => (me ? getPublicProfile({ profileId: me.profile.id }) : Promise.resolve(null)), [me?.profile.id]);
   if (!me) return <Spinner />;
   const items: Mine[] = stats.data?.items ?? [];
   const approved = items.filter((i) => i.status === 'Approved');
@@ -140,6 +142,7 @@ export default function ProfilePage() {
     <>
       <ProfileHeader
         profile={me.profile}
+        social={<FollowStats profileId={me.profile.id} followers={social.data?.profile?.followers ?? 0} following={social.data?.profile?.following ?? 0} />}
         stats={`${approved.length} album${approved.length === 1 ? '' : 's'} - ${views} view${views === 1 ? '' : 's'}`}
         actions={<>
           <Button variant="secondary" onClick={() => setEdit(true)}><Pencil className="mr-2 h-4 w-4" />Edit profile</Button>

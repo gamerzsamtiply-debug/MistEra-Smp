@@ -9,6 +9,8 @@ import Footer from './Footer';
 import ErrorBoundary from './ErrorBoundary';
 import { DelayedSpinner } from './States';
 import { useRouteSeo } from '../lib/seo-dom';
+import NotificationEngine from './NotificationEngine';
+import NotifyPrompt from './NotifyPrompt';
 
 /** Sign-in pages and the admin dashboard draw their own full-screen layout; every other page gets the site navigation. */
 const OWN_LAYOUT = ['/login', '/reset-password', '/admin'];
@@ -41,6 +43,7 @@ export default function Layout() {
         <ErrorBoundary silent><Footer /></ErrorBoundary>
       </div>
       <ErrorBoundary silent><BottomNav /></ErrorBoundary>
+      <ErrorBoundary silent><NotificationEngine /><NotifyPrompt /></ErrorBoundary>
     </div>
   );
 }

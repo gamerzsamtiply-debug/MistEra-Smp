@@ -14,5 +14,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   res.setHeader('Content-Type', out.type);
   res.setHeader('Cache-Control', out.cache);
   res.setHeader('X-Content-Type-Options', 'nosniff');
+  if (out.via) res.setHeader('X-Seo-Render', out.via);
+  if (out.retryAfter) res.setHeader('Retry-After', String(out.retryAfter));
   res.end(method === 'HEAD' ? undefined : out.body);
 }

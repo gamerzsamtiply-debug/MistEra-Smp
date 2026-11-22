@@ -1,9 +1,12 @@
-import { useParams } from 'react-router-dom';
-import { Eye, Images, Share2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { Eye, Images, MessageCircle, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getPublicProfile } from '@/lib/api';
 import { Button } from '@project/components/ui/button';
 import ProfileHeader from '../components/ProfileHeader';
+import FollowButton from '../components/FollowButton';
+import FollowStats from '../components/FollowStats';
 import Reveal from '../components/Reveal';
 import Media from '../components/Media';
 import { EmptyState, InlineError, Spinner } from '../components/States';
@@ -17,6 +20,8 @@ type Img = { id: string; mediaType: string; imageUrl: string; caption: string; v
 export default function PublicProfile() {
   const { id = '' } = useParams();
   const { data, error, loading, reload } = useLoad('Load profile', () => getPublicProfile({ profileId: id }), [id]);
+  const [fol, setFol] = useState<{ following: boolean; followers: number } | null>(null);
+  useEffect(() => { setFol(null); }, [id, data]);
   if (loading) return <Spinner />;
   if (error?.kind === 'notFound') return <ErrorPage code="404" message="This player profile doesn't exist." />;
   if (error || !data) return <div className="container mx-auto px-4 py-16">{error && <InlineError error={error} onRetry={reload} />}</div>;
@@ -31,7 +36,12 @@ export default function PublicProfile() {
       <ProfileHeader
         profile={p}
         stats={`${images.length} album${images.length === 1 ? '' : 's'} - ${views} view${views === 1 ? '' : 's'}`}
-        actions={<Button variant="ghost" size="icon" onClick={share} aria-label="Copy profile link"><Share2 className="h-5 w-5" /></Button>}
+        social={<FollowStats profileId={p.id} followers={fol?.followers ?? p.followers ?? 0} following={p.following ?? 0} />}
+        actions={<>
+          {!p.isMe && <FollowButton profileId={p.id} following={fol?.following ?? !!p.followedByMe} onChange={(following, followers) => setFol({ following, followers })} />}
+          {!p.isMe && <Button asChild variant="secondary"><Link to={`/inbox/${p.id}`}><MessageCircle className="mr-2 h-4 w-4" />Message</Link></Button>}
+          <Button variant="ghost" size="icon" onClick={share} aria-label="Copy profile link"><Share2 className="h-5 w-5" /></Button>
+        </>}
       />
       <div className="container mx-auto px-4 pb-12">
         <h2 className="mb-5 text-center text-lg font-semibold">Albums</h2>

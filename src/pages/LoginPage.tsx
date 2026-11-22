@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, MailCheck } from 'lucide-react';
+import { Loader2, Lock, Mail, MailCheck, X, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@project/components/ui/button';
-import { Input } from '@project/components/ui/input';
-import { Label } from '@project/components/ui/label';
 import { supabase } from '@/lib/supabase';
-import { register } from '@/lib/api';
-import { safeNext, useAuth } from '@/lib/auth';
-import PasswordInput from '../components/PasswordInput';
+import { register, resendConfirmation } from '@/lib/api';
+import { safeNext, signInWithPasswordSecure, useAuth } from '@/lib/auth';
 import GoogleButton from '../components/GoogleButton';
 import PasswordStrength from '../components/PasswordStrength';
 import { rateStrength } from '@/lib/password';
@@ -17,11 +13,15 @@ import { LOGO_MARK } from '../lib/brand';
 
 type Mode = 'login' | 'signup' | 'forgot';
 
-function friendly(message: string): string {
-  if (/invalid login credentials/i.test(message)) return 'Incorrect email or password.';
-  if (/rate limit|too many/i.test(message)) return 'Too many attempts. Please wait a few minutes and try again.';
+function friendly(err: unknown): string {
+  const e = err as { userFacingMessage?: string; status?: number; message?: string };
+  // The server writes these messages for people (wrong password, locked for 15 minutes, Gmail not confirmed yet...)
+  if (e?.userFacingMessage && e.status && e.status < 500) return e.userFacingMessage;
+  if (/rate limit|too many/i.test(e?.message ?? '')) return 'Too many attempts. Please wait a few minutes and try again.';
   return 'Something went wrong. Please check your details and try again.';
 }
+
+const GMAIL = /^[^\s@]+@(gmail|googlemail)\.com$/i;
 
 export default function LoginPage() {
   const { user, isLoading } = useAuth();
@@ -34,6 +34,9 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [remember, setRemember] = useState(true);
+  const [showPw, setShowPw] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
 
   // Someone who just created an account lands on the Welcome page (set avatar / name, or skip); a normal sign-in returns to where they came from.
   const dest = useRef(next);
@@ -41,14 +44,16 @@ export default function LoginPage() {
     if (!isLoading && user) nav(dest.current, { replace: true });
   }, [isLoading, user, nav]);
 
-  const switchMode = (m: Mode) => { sfx.tap(); setMode(m); setError(''); setNotice(''); };
+  const switchMode = (m: Mode) => { sfx.tap(); setMode(m); setError(''); setNotice(''); setUnconfirmed(false); };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(''); setNotice('');
     const mail = email.trim();
     if (!/^\S+@\S+\.\S+$/.test(mail)) return setError('Please enter a valid email address.');
-    if (mode !== 'forgot' && password.length < 8) return setError('Password must be at least 8 characters.');
+    if (mode === 'signup' && !GMAIL.test(mail)) return setError('Please use a valid Gmail address (name@gmail.com). Other email providers are not accepted.');
+    if (mode === 'signup' && password.length < 10) return setError('Password must be at least 10 characters.');
+    if (mode === 'login' && !password) return setError('Please enter your password.');
     if (mode === 'signup' && rateStrength(password).level === 0) return setError('That password is too weak. Make it longer and mix letters, numbers and symbols.');
     setBusy(true);
     try {
@@ -59,28 +64,42 @@ export default function LoginPage() {
         return;
       }
       if (mode === 'signup') {
-        // The account is created ready to use (no confirmation e-mail), then we sign straight in.
+        // The account is created locked; the person must click the link we e-mail to their Gmail address before it works.
         try {
-          await register({ email: mail, password });
-          dest.current = '/welcome'; // account created: send them to the Welcome page
+          const r = await register({ email: mail, password });
+          setNotice(r.confirmationSent
+            ? `We sent a confirmation link to ${mail}. Open it (check spam too) to activate your account, then sign in.`
+            : 'Your account was created, but we could not send the confirmation email just now. Sign in and choose "Resend confirmation link".');
+          setPassword('');
+          sfx.success();
         } catch (err) {
           const e2 = err as { userFacingMessage?: string; status?: number };
           setError(e2.status && e2.status < 500 && e2.userFacingMessage ? e2.userFacingMessage : 'We could not create your account right now. Please try again.');
-          return;
+          sfx.error();
         }
+        return;
       }
-      const { error: err } = await supabase.auth.signInWithPassword({ email: mail, password });
-      if (err) throw err;
-      toast.success(mode === 'signup' ? 'Account created. Welcome to MistEra SMP!' : 'Welcome back!');
-      if (mode === 'signup') sfx.welcome(); else sfx.success();
+      await signInWithPasswordSecure(mail, password, remember);
+      toast.success('Welcome back!');
+      sfx.success();
     } catch (err) {
-      setError(friendly((err as Error).message ?? '')); sfx.error();
+      setError(friendly(err)); setUnconfirmed(/confirm your gmail/i.test(friendly(err))); sfx.error();
     } finally {
       setBusy(false);
     }
   };
 
-  const title = mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Reset password';
+  const resend = async () => {
+    const mail = email.trim();
+    if (!GMAIL.test(mail)) return setError('Enter your Gmail address above first.');
+    setBusy(true);
+    try { await resendConfirmation({ email: mail }); setError(''); setUnconfirmed(false); setNotice(`If ${mail} has an account waiting to be confirmed, a new link is on its way. Check spam too.`); }
+    catch (err) { setError(friendly(err)); }
+    finally { setBusy(false); }
+  };
+
+  const title = mode === 'login' ? 'Login' : mode === 'signup' ? 'Register' : 'Reset password';
+  const submitLabel = mode === 'login' ? 'Login' : mode === 'signup' ? 'Create account' : 'Send reset link';
 
   return (
     <div className="dark auth">
@@ -91,50 +110,59 @@ export default function LoginPage() {
         </Link>
       </div>
       <div className="auth-stage">
-      <div className="auth-card">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold">{title}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            {mode === 'login' && 'Welcome back to MistEra SMP.'}
-            {mode === 'signup' && 'Join the community to submit images and suggestions.'}
-            {mode === 'forgot' && "Enter your email and we'll send you a reset link."}
-          </p>
+      <div className="auth-card" role="dialog" aria-labelledby="auth-title">
+        <Link to="/" className="auth-close" aria-label="Close and go back to the site"><X className="h-4 w-4" /></Link>
+        <div className="mb-5 text-center">
+          <h1 id="auth-title" className="auth-title">{title}</h1>
+          {mode === 'signup' && <p className="auth-sub">Use your real Gmail address. We will email you a link to confirm it.</p>}
+          {mode === 'forgot' && <p className="auth-sub">Enter your email and we'll send you a reset link.</p>}
         </div>
 
         {notice ? (
-          <div className="flex items-start gap-3 rounded-lg border border-border bg-secondary/50 p-4 text-sm"><MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p>{notice}</p></div>
+          <div className="auth-notice"><MailCheck className="mt-0.5 h-5 w-5 shrink-0" /><p>{notice}</p></div>
         ) : (
-          <div className="space-y-4">
+          <form onSubmit={submit} className="space-y-4" noValidate>
+            <label className="gf">
+              <span className="sr-only">Email</span>
+              <input id="lg-email" type="email" inputMode="email" autoComplete="email" placeholder={mode === 'signup' ? 'Gmail address' : 'Email'} value={email} onChange={(e) => setEmail(e.target.value)} maxLength={254} />
+              <Mail className="gf-icon" aria-hidden="true" />
+            </label>
+            {mode !== 'forgot' && (
+              <div>
+                <label className="gf">
+                  <span className="sr-only">Password</span>
+                  <input id="lg-pass" type={showPw ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} maxLength={72} />
+                  <button type="button" className="gf-btn" onClick={() => setShowPw((v) => !v)} aria-label={showPw ? 'Hide password' : 'Show password'} aria-pressed={showPw}>{showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+                  <Lock className="gf-icon gf-icon-2" aria-hidden="true" />
+                </label>
+                {mode === 'signup' && <div className="mt-3"><PasswordStrength password={password} /></div>}
+              </div>
+            )}
+            {mode === 'login' && (
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <label className="inline-flex cursor-pointer items-center gap-2"><input type="checkbox" className="auth-check" checked={remember} onChange={(e) => setRemember(e.target.checked)} />Remember me</label>
+                <button type="button" className="auth-link" onClick={() => switchMode('forgot')}>Forgot Password?</button>
+              </div>
+            )}
+            {error && <p role="alert" className="auth-error">{error}</p>}
+            {unconfirmed && <button type="button" className="auth-link text-xs" onClick={resend} disabled={busy}>Resend confirmation link</button>}
+            <button type="submit" className="auth-submit" disabled={busy}>
+              {busy && <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />}{submitLabel}
+            </button>
             {mode !== 'forgot' && (
               <>
+                <div className="auth-or"><span />or<span /></div>
                 <GoogleButton next={mode === 'signup' ? '/welcome' : next} onError={setError} />
-                <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
               </>
             )}
-            <form onSubmit={submit} className="space-y-4" noValidate>
-              <div className="space-y-1.5"><Label htmlFor="lg-email">Email</Label><Input id="lg-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              {mode !== 'forgot' && (
-                <div className="space-y-1.5"><Label htmlFor="lg-pass">Password</Label><PasswordInput id="lg-pass" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(e) => setPassword(e.target.value)} />{mode === 'signup' && <PasswordStrength password={password} />}</div>
-              )}
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
-              </Button>
-            </form>
-          </div>
+          </form>
         )}
 
-        <div className="mt-6 space-y-2 text-center text-sm text-muted-foreground">
-          {mode === 'login' && (
-            <>
-              <p>New here? <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMode('signup')}>Create an account</button></p>
-              <p><button type="button" className="hover:text-foreground hover:underline" onClick={() => switchMode('forgot')}>Forgot your password?</button></p>
-            </>
-          )}
-          {mode === 'signup' && <p>Already have an account? <button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMode('login')}>Sign in</button></p>}
-          {mode === 'forgot' && <p><button type="button" className="font-medium text-primary hover:underline" onClick={() => switchMode('login')}>Back to sign in</button></p>}
-          <p><Link to="/terms" className="hover:text-foreground hover:underline">Terms of Service</Link></p>
+        <div className="mt-5 space-y-1.5 text-center text-xs auth-foot">
+          {mode === 'login' && <p>Don't have an account? <button type="button" className="auth-link font-semibold" onClick={() => switchMode('signup')}>Register</button></p>}
+          {mode === 'signup' && <p>Already have an account? <button type="button" className="auth-link font-semibold" onClick={() => switchMode('login')}>Login</button></p>}
+          {mode === 'forgot' && <p><button type="button" className="auth-link font-semibold" onClick={() => switchMode('login')}>Back to login</button></p>}
+          <p><Link to="/terms" className="auth-link">Terms of Service</Link></p>
         </div>
       </div>
       </div>

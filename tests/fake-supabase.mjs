@@ -173,13 +173,14 @@ export function createClient() {
     },
     auth: {
       admin: {
-        createUser: async ({ email, password }) => {
+        createUser: async ({ email, password, email_confirm }) => {
           if (Object.values(state.users).some((u) => u.email === email)) return { data: null, error: { message: 'A user with this email address has already been registered', status: 422, code: 'email_exists' } };
           if (password.length < 6) return { data: null, error: { message: 'Password should be at least 6 characters', status: 422, code: 'weak_password' } };
-          state.users[`created-${email}`] = { id: randomUUID(), email, email_confirmed_at: '2026-01-01T00:00:00Z', user_metadata: {}, app_metadata: { provider: 'email', providers: ['email'] } };
+          state.users[`created-${email}`] = { id: randomUUID(), email, email_confirmed_at: email_confirm ? '2026-01-01T00:00:00Z' : null, user_metadata: {}, app_metadata: { provider: 'email', providers: ['email'] } };
           return { data: { user: state.users[`created-${email}`] }, error: null };
         },
       },
+      resend: async () => ({ data: {}, error: null }),
       getUser: async (token) => {
         const u = state.users[token];
         return u ? { data: { user: u }, error: null } : { data: { user: null }, error: { message: 'invalid JWT' } };

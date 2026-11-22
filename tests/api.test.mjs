@@ -347,11 +347,17 @@ await test('staff account linking: one-time code, expiry, single use, admin link
   await ok('adminLinkStaff', { id: alex.id, username: null }, 't-admin');
   assert.equal((await ok('getMe', {}, 't-m1')).staffPosition, null);
 });
-await test('register creates an immediately usable account; duplicates and the owner address are rejected cleanly', async () => {
-  await ok('register', { email: 'new@example.com', password: 'longenough1' });
-  await denied('register', { email: 'new@example.com', password: 'longenough1' }, undefined, 409, 'CONFLICT');
-  await denied('register', { email: 'x@example.com', password: 'short' }, undefined, 400);
-  await denied('register', { email: OWNER, password: 'longenough1' }, undefined, 400);
+await test('register only accepts real-looking Gmail addresses, creates a LOCKED account, rejects duplicates and the owner address', async () => {
+  const r = await ok('register', { email: 'new.player1@gmail.com', password: 'longenough1x' });
+  assert.equal(r.confirmationSent, true);
+  assert.equal(Object.values(fake.state.users).find((u) => u.email === 'new.player1@gmail.com').email_confirmed_at, null); // must confirm via the e-mailed link
+  await denied('register', { email: 'new.player1@gmail.com', password: 'longenough1x' }, undefined, 409, 'CONFLICT');
+  await denied('register', { email: 'someone@example.com', password: 'longenough1x' }, undefined, 400);     // not Gmail
+  await denied('register', { email: 'abc@gmail.com', password: 'longenough1x' }, undefined, 400);           // too short to be a real Gmail name
+  await denied('register', { email: 'new.player2@gmail.com', password: 'short' }, undefined, 400);          // weak password
+  await denied('register', { email: 'new.player2@gmail.com', password: 'password1234' }, undefined, 400);   // common password
+  await denied('register', { email: OWNER, password: 'longenough1x' }, undefined, 400);
+  await denied('register', { email: 'gamerz.samtiply@gmail.com', password: 'longenough1x' }, undefined, 400); // dotted copy of the owner address
 });
 await test('overview counts and error log flow (client errors are scrubbed)', async () => {
   await seedStaff(); await ok('getMe', {}, 't-m1');

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import { recordLogin } from './api';
+import { recordLogin, loginWithPassword } from './api';
 
 export interface AuthUser {
   id: string;
@@ -15,13 +15,39 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx>({ user: null, isLoading: true });
 
+// "Remember me": when it is switched off, the sign-in only lasts for this browser session (it ends when the browser is closed).
+const REMEMBER_KEY = 'mistera-remember';
+const TAB_KEY = 'mistera-session-alive';
+export function setRememberMe(remember: boolean): void {
+  try {
+    if (remember) localStorage.removeItem(REMEMBER_KEY); else localStorage.setItem(REMEMBER_KEY, '0');
+    sessionStorage.setItem(TAB_KEY, '1');
+  } catch { /* storage unavailable */ }
+}
+async function endExpiredSession(): Promise<void> {
+  try {
+    if (localStorage.getItem(REMEMBER_KEY) === '0' && !sessionStorage.getItem(TAB_KEY)) {
+      localStorage.removeItem(REMEMBER_KEY);
+      await supabase.auth.signOut({ scope: 'local' });
+    }
+  } catch { /* storage unavailable */ }
+}
+
+/** Password sign-in through our own API (per-account and per-network attempt limits, unconfirmed Gmail refused), then the session is handed to the browser client. */
+export async function signInWithPasswordSecure(email: string, password: string, remember: boolean): Promise<void> {
+  const t = await loginWithPassword({ email, password });
+  const { error } = await supabase.auth.setSession({ access_token: t.accessToken, refresh_token: t.refreshToken });
+  if (error) throw error;
+  setRememberMe(remember);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
+    endExpiredSession().then(() => supabase.auth.getSession()).then(({ data }) => {
       if (!alive) return;
       setSession(data.session);
       setIsLoading(false);

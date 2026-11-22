@@ -6,6 +6,8 @@
 // What this file may read: published pages, public site settings, the public staff list, join steps, published posts.
 // What it never reads: admin endpoints, users/emails, logs, suggestions, feedback, maintenance text or anything else
 // from the admin panel. Visitors, search engines and AI crawlers all get exactly the same content.
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { db, mustOr } from './db.js';
 import { buildStaffList, getSettingsRow, settingsOut, PAGE_SLUGS, PAGE_TITLES, type PageSlug, type StaffOut } from './lib.js';
 import { PEOPLE, SERVER_SUMMARY, KEYWORDS, allQuestions } from './knowledge.js';
@@ -225,16 +227,48 @@ function structuredData(site: Site, home: boolean) {
 }
 
 // ───────────── response building ─────────────
-export interface SeoResponse { status: number; type: string; body: string; cache: string }
+export interface SeoResponse { status: number; type: string; body: string; cache: string; /** Debug header X-Seo-Render: where the page shell came from. */ via?: string; retryAfter?: number }
 const HTML = 'text/html; charset=utf-8';
 const CACHE = 'public, s-maxage=300, stale-while-revalidate=86400';
+const SHELL_OK = (h: string) => h.includes('<div id="root">');
+/** Last-resort shell (no app bundle): crawlers still get the full tags + text; people get the plain text until the real shell is back. */
+const BARE_SHELL = '<!doctype html>\n<html lang="en" class="dark">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  </head>\n  <body>\n    <div id="root"></div>\n  </body>\n</html>\n';
 
-async function fetchShell(origin: string): Promise<string> {
-  const r = await fetch(`${origin}/app-shell`, { signal: AbortSignal.timeout(5000), headers: { 'x-seo-internal': '1' } });
-  if (!r.ok) throw new Error(`shell ${r.status}`);
-  const html = await r.text();
-  if (!html.includes('<div id="root">')) throw new Error('shell has no #root');
-  return html;
+let shellCache: { html: string; at: number } | null = null;
+
+/** The built app shell is bundled with the function (vercel.json includeFiles), so no HTTP round trip is needed. */
+async function readShellFile(): Promise<string | null> {
+  for (const p of [join(process.cwd(), 'dist', 'app-shell.html'), join(process.cwd(), 'app-shell.html')]) {
+    try { const h = await readFile(p, 'utf8'); if (SHELL_OK(h)) return h; } catch { /* try the next place */ }
+  }
+  return null;
+}
+
+/**
+ * Gets the app shell: bundled file first, then the last good copy, then an HTTP fetch (deployment URL, then the public
+ * host) as a fallback. Every failure is logged with the URL and HTTP status so Vercel -> Logs shows the exact cause.
+ */
+async function getShell(origin: string): Promise<{ html: string; via: string }> {
+  const f = await readShellFile();
+  if (f) { shellCache = { html: f, at: Date.now() }; return { html: f, via: 'file' }; }
+  if (shellCache && Date.now() - shellCache.at < 3_600_000) return { html: shellCache.html, via: 'memory' };
+  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+  const origins = [...new Set([vercelUrl, origin].filter(Boolean))];
+  let last: unknown = new Error('no origin');
+  for (const o of origins) {
+    try {
+      const r = await fetch(`${o}/app-shell`, { signal: AbortSignal.timeout(3000), headers: { 'x-seo-internal': '1', 'user-agent': 'MistEra-SEO-internal/1.0' } });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const html = await r.text();
+      if (!SHELL_OK(html)) throw new Error('shell has no #root');
+      shellCache = { html, at: Date.now() };
+      return { html, via: 'fetch' };
+    } catch (e) {
+      last = e;
+      console.error(`[seo] app-shell fetch from ${o} failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  throw last;
 }
 
 /** Removes the generic noindex tags the shell was built with, then writes this page's tags and text. */
@@ -289,43 +323,58 @@ async function llms(site: Site, full: boolean): Promise<string> {
 
 export const SEO_KEYS = ['home', 'staff', 'sitemap', 'llms', 'llms-full', ...PAGE_SLUGS] as const;
 
-/** Never throws: on any failure it serves the plain app shell (the site still works, it is just not pre-rendered). */
+/** Never throws. A page that can't be fully pre-rendered degrades step by step; 503 is only used when nothing at all can be served. */
 export async function renderSeo(key: string, origin: string): Promise<SeoResponse> {
-  try {
-    if (!(SEO_KEYS as readonly string[]).includes(key)) return { status: 404, type: 'text/plain; charset=utf-8', body: 'Not found', cache: 'no-store' };
-    const site = await loadSite();
-    if (key === 'sitemap') return { status: 200, type: 'application/xml; charset=utf-8', body: sitemap(site), cache: CACHE };
-    if (key === 'llms' || key === 'llms-full') return { status: 200, type: 'text/plain; charset=utf-8', body: await llms(site, key === 'llms-full'), cache: CACHE };
+  if (!(SEO_KEYS as readonly string[]).includes(key)) return { status: 404, type: 'text/plain; charset=utf-8', body: 'Not found', cache: 'no-store' };
+  const isFile = key === 'sitemap' || key === 'llms' || key === 'llms-full';
 
-    const shell = await fetchShell(origin);
+  let site: Site | null = null;
+  try { site = await loadSite(); } catch (e) { console.error(`[seo] ${key}: site data unavailable:`, e); }
+
+  if (isFile) {
+    if (key === 'sitemap') return { status: 200, type: 'application/xml; charset=utf-8', body: site ? sitemap(site) : fallbackSitemap(), cache: site ? CACHE : 'public, s-maxage=60' };
+    try {
+      if (!site) throw new Error('no site data');
+      return { status: 200, type: 'text/plain; charset=utf-8', body: await llms(site, key === 'llms-full'), cache: CACHE };
+    } catch (e) {
+      console.error(`[seo] ${key} failed:`, e);
+      return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP llms.txt is temporarily unavailable. Please try again in a minute.\n', cache: 'no-store', retryAfter: 60 };
+    }
+  }
+
+  let shell: { html: string; via: string } | null = null;
+  try { shell = await getShell(origin); } catch (e) { console.error(`[seo] ${key}: no app shell:`, e); }
+
+  // No database: serve the plain app shell (the app shows its own error message), never a bare 503.
+  if (!site) {
+    if (shell) return { status: 200, type: HTML, body: shell.html, cache: 'no-store', via: `${shell.via}-noprerender` };
+    return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP is temporarily unavailable. Please try again in a minute.', cache: 'no-store', retryAfter: 60 };
+  }
+
+  try {
+    const html = shell?.html ?? BARE_SHELL;
+    const via = shell?.via ?? 'bare';
+    const cache = shell ? CACHE : 'public, s-maxage=30';
     if (key === 'home') {
       const meta: Meta = { title: HOME_TITLE, description: homeDescription(site.s), canonical: abs('/'), robots: 'index, follow, max-image-preview:large', jsonLd: structuredData(site, true) };
-      return { status: 200, type: HTML, body: fillShell(shell, meta, homeBody(site)), cache: CACHE };
+      return { status: 200, type: HTML, body: fillShell(html, meta, homeBody(site)), cache, via };
     }
     if (key === 'staff') {
       const meta: Meta = { title: 'Staff Team | MistEra SMP', description: staffDescription(site.staff), canonical: abs('/staff'), robots: 'index, follow, max-image-preview:large', jsonLd: structuredData(site, false) };
-      return { status: 200, type: HTML, body: fillShell(shell, meta, staffBody(site)), cache: CACHE };
+      return { status: 200, type: HTML, body: fillShell(html, meta, staffBody(site)), cache, via };
     }
     const slug = key as PageSlug;
     const page = site.pages.get(slug);
     // Not published (or empty): the app still shows its "not published yet" message, but it is a 404 and out of the index.
-    if (!page) return { status: 404, type: HTML, body: fillShell(shell, null, ''), cache: 'public, s-maxage=60' };
+    if (!page) return { status: 404, type: HTML, body: fillShell(html, null, ''), cache: 'public, s-maxage=60', via };
     const title = clip(`${page.title?.trim() || PAGE_TITLES[slug]} | ${SITE_NAME}`, 60);
     const text = oneLine(markdownToText(page.content ?? ''));
     const description = text.length >= 60 ? clip(text, 160) : PAGE_DESCRIPTION[slug];
     const meta: Meta = { title, description, canonical: abs(`/${slug}`), robots: 'index, follow, max-image-preview:large', jsonLd: slug === 'about' ? structuredData(site, false) : undefined };
-    return { status: 200, type: HTML, body: fillShell(shell, meta, pageBody(site, slug, page)), cache: CACHE };
+    return { status: 200, type: HTML, body: fillShell(html, meta, pageBody(site, slug, page)), cache, via };
   } catch (e) {
-    console.error(`[seo] ${key} failed:`, e);
-    // /sitemap.xml and /llms.txt must never answer with an HTML page (crawlers would treat it as a broken file).
-    if (key === 'sitemap') return { status: 200, type: 'application/xml; charset=utf-8', body: fallbackSitemap(), cache: 'public, s-maxage=60' };
-    if (key === 'llms' || key === 'llms-full') return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP llms.txt is temporarily unavailable. Please try again in a minute.\n', cache: 'no-store' };
-    try {
-      const shell = await fetchShell(origin);
-      return { status: 200, type: HTML, body: shell, cache: 'no-store' };
-    } catch (e2) {
-      console.error('[seo] app shell unavailable:', e2);
-      return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP is temporarily unavailable. Please try again in a minute.', cache: 'no-store' };
-    }
+    console.error(`[seo] ${key} render failed:`, e);
+    if (shell) return { status: 200, type: HTML, body: shell.html, cache: 'no-store', via: `${shell.via}-noprerender` };
+    return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP is temporarily unavailable. Please try again in a minute.', cache: 'no-store', retryAfter: 60 };
   }
 }
