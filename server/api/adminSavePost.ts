@@ -4,6 +4,7 @@ import { db, must } from '../db.js';
 import { fail } from '../errors.js';
 import { isUuid } from '../db.js';
 import { cleanUrl, logActivity, requireAdmin } from '../lib.js';
+import { pushToAll } from '../push.js';
 
 // Creates, edits, publishes or unpublishes an announcement or update
 export default authEndpoint(
@@ -15,12 +16,21 @@ export default authEndpoint(
     const date = input.publishedAt ? new Date(input.publishedAt) : new Date();
     if (isNaN(date.getTime())) throw fail('BAD_REQUEST', 'Please choose a valid publication date.');
     const record = { kind: input.kind, title: input.title.trim(), body: input.body.trim(), image_url: cleanUrl(input.imageUrl), published: input.published, published_at: date.toISOString() };
+    let wasPublished = false;
+    let postId = input.id ?? '';
     if (input.id) {
       if (!isUuid(input.id)) throw fail('NOT_FOUND', 'That post no longer exists.');
+      const before = must(await db().from('posts').select('published').eq('id', input.id).maybeSingle(), 'posts.before') as { published: boolean | null } | null;
+      wasPublished = !!before?.published;
       const rows = must(await db().from('posts').update(record).eq('id', input.id).select('id'), 'posts.update') as { id: string }[] | null;
       if (!rows?.length) throw fail('NOT_FOUND', 'That post no longer exists.');
     } else {
-      must(await db().from('posts').insert(record), 'posts.insert');
+      const created = must(await db().from('posts').insert(record).select('id').single(), 'posts.insert') as { id: string };
+      postId = created.id;
+    }
+    // newly published (and not scheduled for the future): alert every device that allowed notifications, guests included
+    if (input.published && !wasPublished && date.getTime() <= Date.now() + 60_000) {
+      await pushToAll({ title: input.kind === 'Announcement' ? 'New announcement' : 'New update', body: record.title, url: input.kind === 'Announcement' ? '/announcements' : '/updates', tag: `post-${postId}` });
     }
     await logActivity(user, `${input.id ? 'Edited' : 'Created'} ${input.kind.toLowerCase()}${input.published ? ' (published)' : ' (draft)'}`, `${input.kind}: ${record.title}`);
     return { ok: true };

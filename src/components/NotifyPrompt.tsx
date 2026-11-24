@@ -7,7 +7,7 @@ import { enableSystemNotifications, notificationPermission } from '../lib/notify
 const KEY = 'mistera-notify-asked';
 const SNOOZE_MS = 7 * 86_400_000;
 
-/** Asks, once per visit-week, whether to turn on device notifications. The browser only allows the real permission pop-up after a tap, so this is the tap. */
+/** Asks on a person's very first visit (and again after a week if they said "Not now") whether to turn on device notifications. The browser only allows the real permission pop-up after a tap, so this is the tap. */
 export default function NotifyPrompt() {
   const [show, setShow] = useState(false);
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function NotifyPrompt() {
     let asked = 0;
     try { asked = Number(localStorage.getItem(KEY)) || 0; } catch { /* storage unavailable */ }
     if (asked && Date.now() - asked < SNOOZE_MS) return;
-    const t = window.setTimeout(() => setShow(true), 3500);
+    const t = window.setTimeout(() => setShow(true), asked ? 3500 : 1500);
     return () => window.clearTimeout(t);
   }, []);
   if (!show) return null;
@@ -31,13 +31,13 @@ export default function NotifyPrompt() {
       <div className="flex gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Bell className="h-5 w-5" /></span>
         <div className="min-w-0 pr-5">
-          <p className="text-sm font-semibold">Turn on notifications?</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">Get an alert on your device for new posts, videos, comments, and followers.</p>
+          <p className="text-sm font-semibold">Allow notifications?</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Allow notifications to get an alert on your phone for new posts, videos, announcements and comments - even when the site is closed.</p>
         </div>
       </div>
       <div className="mt-3 flex justify-end gap-2">
         <Button size="sm" variant="ghost" onClick={close}>Not now</Button>
-        <Button size="sm" onClick={turnOn}>Turn on</Button>
+        <Button size="sm" onClick={turnOn}>Allow</Button>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export const HOME_DESCRIPTION =
 export const ROUTES: SeoRoute[] = [
   {
     path: '/',
-    title: 'MistEra SMP – Minecraft Bedrock SMP Server in Bangladesh',
+    title: 'MistEra SMP – Official Minecraft Bedrock SMP, Bangladesh',
     description: HOME_DESCRIPTION,
     h1: "MistEra SMP — Bangladesh's Bedrock SMP. Online 24/7.",
   },
@@ -112,10 +112,10 @@ export const ROUTES: SeoRoute[] = [
 
 /**
  * Routes rendered on the server with live data from the database (api/seo.ts → server/seoPage.ts), so crawlers and AI
- * assistants get the real staff list, page text and homepage copy that admins edit. They are NOT written as static
- * files at build time. Every other route in ROUTES is a static pre-rendered file.
+ * assistants get the real staff list, partners, posts, page text and homepage copy that admins edit. They are NOT written
+ * as static files at build time (a static copy would be an empty #root, which Google reports as a Soft 404).
  */
-export const DYNAMIC_PATHS = ['/', '/staff', '/about', '/information', '/rules', '/terms', '/privacy'];
+export const DYNAMIC_PATHS = ['/', '/staff', '/about', '/information', '/rules', '/terms', '/privacy', '/partners', '/announcements', '/updates', '/album'];
 
 /** Pages that exist but must stay out of search results (accounts, admin, errors, user-generated profiles). */
 const PRIVATE_TITLES: Record<string, string> = {

@@ -165,6 +165,7 @@ export const getPage = (input?: Any) => call<Any>('getPage', input);
 export const getPublicProfile = (input?: Any) => call<Any>('getPublicProfile', input);
 export const getSite = (input?: Record<string, never> | undefined) => call<GetSiteOutputType>('getSite', input);
 export const listAlbum = (input?: Any) => call<{ images: AlbumItem[] }>('listAlbum', input);
+export const getAlbumPost = (input: { id: string; visitorId?: string }) => call<{ post: AlbumItem }>('getAlbumPost', input);
 export const listPartners = (input?: Any) => call<Any>('listPartners', input);
 export const listPosts = (input?: Any) => call<Any>('listPosts', input);
 export const listStaff = (input?: Any) => call<Any>('listStaff', input);
@@ -185,12 +186,15 @@ export interface AlbumItem {
 }
 export interface AlbumComment {
   id: string; parentId: string | null; body: string; createdAt: string;
-  user: { id: string; username: string; avatarUrl: string; role: string } | null; canDelete: boolean;
+  user: { id: string; username: string; avatarUrl: string; role: string } | null; guestName?: string | null; canDelete: boolean;
 }
-export const toggleAlbumLike = (input: { id: string }) => call<{ liked: boolean; likes: number }>('toggleAlbumLike', input);
-export const listAlbumComments = (input: { id: string }) => call<{ comments: AlbumComment[] }>('listAlbumComments', input);
-export const addAlbumComment = (input: { id: string; body: string; parentId?: string | null }) => call<{ comment: AlbumComment }>('addAlbumComment', input);
-export const deleteAlbumComment = (input: { id: string }) => call<{ ok: true }>('deleteAlbumComment', input);
+export const toggleAlbumLike = (input: { id: string; visitorId?: string }) => call<{ liked: boolean; likes: number }>('toggleAlbumLike', input);
+export const listAlbumComments = (input: { id: string; visitorId?: string }) => call<{ comments: AlbumComment[] }>('listAlbumComments', input);
+export const addAlbumComment = (input: { id: string; body: string; parentId?: string | null; visitorId?: string; guestName?: string }) => call<{ comment: AlbumComment }>('addAlbumComment', input);
+export const deleteAlbumComment = (input: { id: string; visitorId?: string }) => call<{ ok: true }>('deleteAlbumComment', input);
+export const getPushConfig = () => call<{ publicKey: string }>('getPushConfig', {});
+export const savePushSubscription = (input: { endpoint: string; p256dh: string; auth: string; visitorId?: string }) => call<{ ok: boolean }>('savePushSubscription', input);
+export const removePushSubscription = (input: { endpoint: string }) => call<{ ok: true }>('removePushSubscription', input);
 export const health = (input?: Any) => call<{ ok: boolean; env: Record<string, boolean>; missingTables: string[]; keyProblem: boolean }>('health', input);
 export const trackView = (input: { visitorId: string; path: string }) => call<{ ok: true }>('trackView', input);
 export const trackAlbumView = (input: { id: string; visitorId?: string }) => call<{ views: number }>('trackAlbumView', input);

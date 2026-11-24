@@ -4,6 +4,7 @@ import { db, must, mustOr } from '../db.js';
 import { fail } from '../errors.js';
 import { findRow, logActivity, requireModerator } from '../lib.js';
 import { clip, notify } from '../social.js';
+import { pushToAll } from '../push.js';
 import type { AlbumRow } from '../types.js';
 
 // Approves or declines an album submission (Moderators, Admins, Owner). Deleting one for good is Admin/Owner only.
@@ -25,6 +26,8 @@ export default authEndpoint(z.object({ id: z.string().max(64), action: z.enum(['
       { userId: up, actorId: null, type: 'post', title: 'Your post was approved', body: clip(a.caption ?? '', 100), url: '/album' },
       ...fr.map((f) => ({ userId: f.follower_id, actorId: up, type: 'post' as const, title: `@${name} shared ${what}`, body: clip(a.caption ?? '', 100), url: '/album' })),
     ]);
+    // everyone else who allowed notifications (including guests) hears about it too; the uploader and followers already got a personal one
+    await pushToAll({ title: `@${name} shared ${what}`, body: clip(a.caption ?? '', 100), url: `/album/${a.id}`, tag: `album-${a.id}` }, [up, ...fr.map((f) => f.follower_id)]);
   }
   await logActivity(user, input.action === 'Delete' ? 'Deleted album image' : `${input.action} album image`, 'Community Album', a.caption || a.image_url || '');
   return { ok: true };

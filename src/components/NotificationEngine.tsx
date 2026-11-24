@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 import { getBadges, latestPosts, listNotifications } from '@/lib/api';
 import { setNotifState, resetNotifState } from '../lib/notifStore';
-import { notificationPermission, registerWorker, showSystemNotification } from '../lib/notify';
+import { notificationPermission, registerWorker, showSystemNotification, syncPushSubscription } from '../lib/notify';
 
 const POST_KEY = 'mistera-sys-post';
 const noteKey = (uid: string) => `mistera-sys-n:${uid}`;
@@ -24,7 +24,8 @@ export default function NotificationEngine() {
   const navRef = useRef(nav); navRef.current = nav;
   const uid = user?.id ?? '';
 
-  useEffect(() => { if (notificationPermission() === 'granted') void registerWorker(); }, []);
+  // re-runs after login/logout so the phone's push subscription gets linked to the account
+  useEffect(() => { if (notificationPermission() === 'granted') void registerWorker().then(() => syncPushSubscription()); }, [uid]);
 
   const announce = (title: string, body: string, url: string, tag: string) => {
     const looking = document.visibilityState === 'visible' && document.hasFocus();

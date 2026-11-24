@@ -32,7 +32,7 @@ test('every public route declared in App.tsx is indexable (in ROUTES) or deliber
   const paths = [...app.matchAll(/<Route path="(\/[^":*]*)"/g)].map((m) => m[1]);
   const privatePaths = new Set(['/profile', '/welcome', '/suggestions', '/feedback', '/admin', '/login', '/reset-password', '/401', '/403', '/500', '/503', '/u']);
   for (const p of paths) {
-    if (p === '/u/') continue;
+    if (p === '/u/' || p === '/album/') continue; // /album/:id = shared post link (server-rendered, noindex)
     assert.ok(ROUTES.some((r) => r.path === p) || privatePaths.has(p) || p.startsWith('/u'), `route ${p} is neither in ROUTES (sitemap) nor marked private`);
   }
   for (const r of ROUTES) assert.ok(r.path === '/' || paths.includes(r.path), `${r.path} is in ROUTES but not routed in App.tsx`);

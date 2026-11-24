@@ -19,9 +19,9 @@ export default function PostsPage({ kind }: { kind: 'Announcement' | 'Update' })
         {loading ? <GridSkeleton /> : error ? <InlineError error={error} onRetry={reload} /> : !data?.posts.length ? (
           <EmptyState icon={isA ? Newspaper : History} title={isA ? 'No announcements yet' : 'No updates yet'} message="Check back soon - new posts will appear here." />
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {data.posts.map((p, i) => <Reveal key={p.id} delay={(i % 3) * 0.06}><PostCard post={p} onOpen={() => setOpen(p)} /></Reveal>)}
-          </div>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {data.posts.map((p, i) => <li key={p.id} className="contents"><Reveal delay={(i % 3) * 0.06}><PostCard post={p} onOpen={() => setOpen(p)} /></Reveal></li>)}
+          </ul>
         )}
       </div>
       <PostDialog post={open} onClose={() => setOpen(null)} />

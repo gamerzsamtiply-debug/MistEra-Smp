@@ -64,8 +64,16 @@ import markNotificationsRead from './markNotificationsRead.js';
 import getBadges from './getBadges.js';
 import login from './login.js';
 import resendConfirmation from './resendConfirmation.js';
+import getAlbumPost from './getAlbumPost.js';
+import getPushConfig from './getPushConfig.js';
+import savePushSubscription from './savePushSubscription.js';
+import removePushSubscription from './removePushSubscription.js';
 
 export const endpoints: Record<string, Endpoint> = {
+  getAlbumPost,
+  getPushConfig,
+  savePushSubscription,
+  removePushSubscription,
   toggleFollow,
   listFollows,
   listNotifications,

@@ -6,10 +6,12 @@ import { renderSeo } from '../server/seoPage.js';
 export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const method = (req.method ?? 'GET').toUpperCase();
   if (method !== 'GET' && method !== 'HEAD') { res.statusCode = 405; res.setHeader('Allow', 'GET, HEAD'); res.end('Method not allowed'); return; }
-  const key = new URL(req.url ?? '/', 'http://localhost').searchParams.get('p') || 'home';
+  const q = new URL(req.url ?? '/', 'http://localhost').searchParams;
+  const key = q.get('p') || 'home';
+  const id = (q.get('id') ?? '').slice(0, 64) || undefined;
   const h = (n: string) => { const v = req.headers[n]; return (Array.isArray(v) ? v[0] : v)?.split(',')[0].trim(); };
   const host = h('x-forwarded-host') || h('host') || 'misterasmp.fun';
-  const out = await renderSeo(key, `https://${host}`);
+  const out = await renderSeo(key, `https://${host}`, id);
   res.statusCode = out.status;
   res.setHeader('Content-Type', out.type);
   res.setHeader('Cache-Control', out.cache);

@@ -1,5 +1,7 @@
 // Server-rendered, crawler- and AI-friendly output for the PUBLIC website only:
 //   /  /staff  /about  /information  /rules  /terms  /privacy   → the normal app shell + real text (headings, staff list, page text, JSON-LD)
+//   /partners  /announcements  /updates  /album  /album/<id>    → the normal app shell + the real list / post text (no empty #root)
+//   any other URL                                               → a real HTTP 404 (the app shell still loads and shows its own 404 page)
 //   /sitemap.xml                                                → only pages that are actually published
 //   /llms.txt  /llms-full.txt                                   → plain-text summary of the site for AI assistants
 //
@@ -8,10 +10,10 @@
 // from the admin panel. Visitors, search engines and AI crawlers all get exactly the same content.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { db, mustOr } from './db.js';
+import { db, mustOr, isUuid } from './db.js';
 import { buildStaffList, getSettingsRow, settingsOut, PAGE_SLUGS, PAGE_TITLES, type PageSlug, type StaffOut } from './lib.js';
 import { PEOPLE, SERVER_SUMMARY, KEYWORDS, allQuestions } from './knowledge.js';
-import type { ContentPageRow, JoinStepRow, PostRow } from './types.js';
+import type { AlbumRow, ContentPageRow, JoinStepRow, PartnerRow, PostRow, SettingsRow } from './types.js';
 
 const SITE_URL = (process.env.SITE_URL?.trim() || 'https://misterasmp.fun').replace(/\/+$/, '');
 const SITE_NAME = 'MistEra SMP';
@@ -27,7 +29,7 @@ const DEFAULT_ABOUT_TEXT = [
   'Access is managed through our official Discord community. To join the server, simply join our Discord, visit the Gamer Tag channel, and submit your Minecraft Bedrock Gamertag for whitelist approval.',
   "Once approved, you're ready to enter MistEra and become part of the community.",
 ];
-const HOME_TITLE = 'MistEra SMP – Minecraft Bedrock SMP Server in Bangladesh';
+const HOME_TITLE = 'MistEra SMP – Official Minecraft Bedrock SMP, Bangladesh'; // keep in sync with src/lib/seo-config.ts
 const HOME_DESCRIPTION = 'MistEra SMP is a private, whitelisted Minecraft Bedrock survival server based in Bangladesh and online 24/7. Join our Discord to get approved and play.';
 
 const PAGE_DESCRIPTION: Record<PageSlug, string> = {
@@ -37,8 +39,16 @@ const PAGE_DESCRIPTION: Record<PageSlug, string> = {
   terms: 'The terms of service for the MistEra SMP Minecraft Bedrock server and its community.',
   privacy: 'How MistEra SMP, a Minecraft Bedrock server and community from Bangladesh, handles account data, profiles and what you share on the website.',
 };
-/** Pages that stay client-rendered but are public and indexable. */
-const STATIC_PATHS = ['/partners', '/announcements', '/updates', '/album'];
+/** Listing pages (server-rendered from the database). Keep titles/descriptions in sync with src/lib/seo-config.ts. */
+const LIST_PATHS = ['/partners', '/announcements', '/updates', '/album'];
+const LIST_META: Record<string, { title: string; description: string; h1: string; intro: string }> = {
+  partners: { title: 'Partners | MistEra SMP', description: 'Communities, hosts and creators that MistEra SMP, a Minecraft Bedrock SMP from Bangladesh, proudly works with.', h1: 'Partners', intro: 'Communities, hosts and creators we proudly work with.' },
+  announcements: { title: 'Announcements and News | MistEra SMP', description: 'Official news, events and announcements from the MistEra SMP Minecraft Bedrock server team.', h1: 'Announcements', intro: 'Official news and events from the MistEra SMP team.' },
+  updates: { title: 'Server Updates and Changelog | MistEra SMP', description: 'Patch notes, new features and server changes for the MistEra SMP Bedrock survival server.', h1: 'Updates', intro: 'Server changes, new features and patch notes.' },
+  album: { title: 'Community Album | MistEra SMP', description: 'Screenshots and builds shared by MistEra SMP players from our Minecraft Bedrock survival world.', h1: 'Community Album', intro: 'Screenshots, builds and videos shared by our players.' },
+};
+/** Only used when the database can't be read, so the pages still contain the real server details instead of an empty shell. */
+const FALLBACK_SERVER = { address: 'play.misterasmp.fun', port: 5673 };
 
 // ───────────── small helpers ─────────────
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -122,7 +132,7 @@ function staffSentence(staff: StaffOut[]): string {
   return staff.map((m) => `${m.name} (${m.position})`).join(', ');
 }
 function staffDescription(_staff: StaffOut[]): string {
-  return clip('Meet the MistEra SMP staff: Omar Faruk (MrKidzz) owner, kelausking admin, Zenko Playz, greamyboyyy and Abidvaiya moderators. Bedrock SMP, Bangladesh.', 160);
+  return clip('Meet the MistEra SMP staff: Omar Faruk (MrKidzz) owner, kelausking and Zenko Playz admins, greamyboyyy and Abidvaiya moderators. Bedrock SMP, Bangladesh.', 160);
 }
 
 // ───────────── page bodies ─────────────
@@ -168,8 +178,54 @@ function pageBody(site: Site, slug: PageSlug, p: ContentPageRow): string {
   return shellBody(site, p.title?.trim() || PAGE_TITLES[slug], markdownToHtml(p.content ?? ''));
 }
 
+
+function notFoundBody(site: Site): string {
+  return shellBody(site, 'Page not found', `<p>This page does not exist on ${esc(SITE_NAME)}. Try one of the pages above, or go back to the <a href="/">homepage</a>.</p>`);
+}
+
+function partnersBody(site: Site, rows: PartnerRow[]): string {
+  const m = LIST_META.partners;
+  const inner = rows.length
+    ? `<ul>${rows.map((p) => `<li><strong>${esc(p.name ?? '')}</strong> (${esc(p.category ?? 'Community')})${p.description ? ` – ${esc(oneLine(p.description))}` : ''}${httpUrl(p.website_url) ? ` <a href="${esc(httpUrl(p.website_url))}" rel="noopener">Visit</a>` : ''}</li>`).join('')}</ul>`
+    : '<p>Our partners will be listed here soon.</p>';
+  return shellBody(site, m.h1, `<p>${esc(m.intro)}</p>${inner}`);
+}
+
+function postsBody(site: Site, key: 'announcements' | 'updates', rows: PostRow[]): string {
+  const m = LIST_META[key];
+  const inner = rows.length
+    ? rows.map((p) => `<article><h2>${esc(p.title ?? '')}</h2>${p.published_at ? `<p><time datetime="${esc(String(p.published_at))}">${esc(String(p.published_at).slice(0, 10))}</time></p>` : ''}<p>${esc(clip(oneLine(markdownToText(p.body ?? '')), 500))}</p></article>`).join('')
+    : '<p>Check back soon - new posts will appear here.</p>';
+  return shellBody(site, m.h1, `<p>${esc(m.intro)}</p>${inner}`);
+}
+
+interface AlbumView extends AlbumRow { uploaderName: string }
+const albumTitle = (a: AlbumView) => `${a.media_type === 'video' ? 'Video' : 'Photo'} by ${a.uploaderName}`;
+
+function albumBody(site: Site, rows: AlbumView[]): string {
+  const m = LIST_META.album;
+  const inner = rows.length
+    ? `<ul>${rows.map((a) => `<li><a href="/album/${esc(a.id)}">${esc(albumTitle(a))}</a>${a.caption ? ` – ${esc(clip(oneLine(a.caption), 160))}` : ''}</li>`).join('')}</ul>`
+    : '<p>No posts yet. Be the first to share a screenshot or video from MistEra SMP!</p>';
+  return shellBody(site, m.h1, `<p>${esc(m.intro)}</p>${inner}`);
+}
+
+function albumPostBody(site: Site, a: AlbumView): string {
+  const media = a.media_type === 'video'
+    ? (httpUrl(a.image_url) ? `<p><a href="${esc(httpUrl(a.image_url))}">Watch the video</a></p>` : '')
+    : (httpUrl(a.image_url) ? `<p><img src="${esc(httpUrl(a.image_url))}" alt="${esc(a.caption ? clip(oneLine(a.caption), 120) : albumTitle(a))}" style="max-width:100%;height:auto" /></p>` : '');
+  return shellBody(site, albumTitle(a), `${a.caption ? `<p>${esc(oneLine(a.caption))}</p>` : ''}${media}<p><a href="/album">Back to the Community Album</a></p>`);
+}
+
+/** Site data used when the database can't be read: the facts that never change, so crawlers still get real text. */
+function fallbackSite(): Site {
+  const s = settingsOut({ server_address: FALLBACK_SERVER.address, server_port: FALLBACK_SERVER.port, platform: 'Minecraft Bedrock Edition', server_status: 'Online' } as unknown as SettingsRow);
+  const staff = PEOPLE.map((p, i) => ({ id: `known-${i}`, name: p.name, avatarUrl: '', position: p.role, profileId: null, username: null })) as unknown as StaffOut[];
+  return { s, pages: new Map(), staff, steps: [] };
+}
+
 // ───────────── tags ─────────────
-interface Meta { title: string; description: string; canonical: string; robots: string; jsonLd?: unknown }
+interface Meta { title: string; description: string; canonical: string; robots: string; jsonLd?: unknown; image?: string; video?: string }
 
 function tagsHtml(m: Meta): string {
   const t = (name: string, content: string, kind: 'name' | 'property' = 'name') => `<meta ${kind}="${name}" content="${esc(content)}" data-seo="${kind}:${name}" />`;
@@ -183,10 +239,11 @@ function tagsHtml(m: Meta): string {
     t('geo.region', 'BD'),
     t('geo.placename', 'Bangladesh'),
     `<link rel="canonical" href="${esc(m.canonical)}" data-seo="rel:canonical" />`,
-    t('og:type', 'website', 'property'), t('og:site_name', SITE_NAME, 'property'), t('og:locale', 'en_US', 'property'),
+    t('og:type', m.video ? 'video.other' : 'website', 'property'), t('og:site_name', SITE_NAME, 'property'), t('og:locale', 'en_US', 'property'),
     t('og:title', m.title, 'property'), t('og:description', m.description, 'property'), t('og:url', m.canonical, 'property'),
-    t('og:image', LOGO_FULL, 'property'), t('og:image:alt', 'MistEra SMP logo', 'property'),
-    t('twitter:card', 'summary_large_image'), t('twitter:title', m.title), t('twitter:description', m.description), t('twitter:image', LOGO_FULL),
+    t('og:image', m.image || LOGO_FULL, 'property'), t('og:image:alt', m.image ? m.title : 'MistEra SMP logo', 'property'),
+    m.video ? t('og:video', m.video, 'property') : '',
+    t('twitter:card', 'summary_large_image'), t('twitter:title', m.title), t('twitter:description', m.description), t('twitter:image', m.image || LOGO_FULL),
     m.jsonLd ? `<script type="application/ld+json" data-seo="jsonld">${JSON.stringify(m.jsonLd).replace(/</g, '\\u003c')}</script>` : '',
   ].filter(Boolean).map((x) => `    ${x}`).join('\n');
 }
@@ -216,7 +273,15 @@ function structuredData(site: Site, home: boolean) {
   if (home) {
     graph.push(
       { '@type': 'WebSite', '@id': `${SITE_URL}/#website`, url: `${SITE_URL}/`, name: SITE_NAME, alternateName: 'MistEra', description: homeDescription(s), inLanguage: 'en', publisher: { '@id': `${SITE_URL}/#organization` } },
-      { '@type': 'GameServer', '@id': `${SITE_URL}/#server`, name: SITE_NAME, url: `${SITE_URL}/`, game: { '@type': 'VideoGame', name: s.platform || 'Minecraft Bedrock Edition' }, serverStatus: s.serverStatus, publisher: { '@id': `${SITE_URL}/#organization` } },
+      {
+        '@type': 'GameServer', '@id': `${SITE_URL}/#server`, name: SITE_NAME, url: `${SITE_URL}/`, game: { '@type': 'VideoGame', name: s.platform || 'Minecraft Bedrock Edition' }, serverStatus: s.serverStatus, publisher: { '@id': `${SITE_URL}/#organization` },
+        description: `${SITE_NAME} server address: ${s.serverAddress}${s.serverPort ? `, port ${s.serverPort}` : ''}. ${homeDescription(s)}`,
+        identifier: [
+          ...(s.serverAddress ? [{ '@type': 'PropertyValue', name: 'Server IP', value: s.serverAddress }] : []),
+          ...(s.serverPort ? [{ '@type': 'PropertyValue', name: 'Port', value: String(s.serverPort) }] : []),
+        ],
+        areaServed: { '@type': 'Country', name: 'Bangladesh' },
+      },
     );
   }
   // One question/answer list for the whole site, attached to the pages that also show the staff.
@@ -272,12 +337,12 @@ async function getShell(origin: string): Promise<{ html: string; via: string }> 
 }
 
 /** Removes the generic noindex tags the shell was built with, then writes this page's tags and text. */
-function fillShell(shell: string, meta: Meta | null, body: string): string {
+function fillShell(shell: string, meta: Meta | null, body: string, plainTitle?: string): string {
   let html = shell
     .replace(/[ \t]*<(title|script|noscript)\b[^>]*\bdata-seo="[^"]*"[^>]*>[\s\S]*?<\/\1>\n?/g, '')
     .replace(/[ \t]*<(meta|link)\b[^>]*\bdata-seo="[^"]*"[^>]*>\n?/g, '');
   if (meta) html = html.replace(/[ \t]*<\/head>/, `${tagsHtml(meta)}\n  </head>`);
-  else html = html.replace(/[ \t]*<\/head>/, `    <title data-seo="title">${SITE_NAME}</title>\n    <meta name="robots" content="noindex, follow" data-seo="name:robots" />\n  </head>`);
+  else html = html.replace(/[ \t]*<\/head>/, `    <title data-seo="title">${esc(plainTitle ?? SITE_NAME)}</title>\n    <meta name="robots" content="noindex, follow" data-seo="name:robots" />\n  </head>`);
   return html.replace('<div id="root"></div>', `<div id="root">${body}</div>`);
 }
 
@@ -286,7 +351,7 @@ const abs = (p: string) => (p === '/' ? `${SITE_URL}/` : `${SITE_URL}${p}`);
 function sitemap(site: Site): string {
   const urls: { loc: string; lastmod?: string }[] = [{ loc: abs('/') }, { loc: abs('/staff') }];
   for (const slug of PAGE_SLUGS) { const p = site.pages.get(slug); if (p) urls.push({ loc: abs(`/${slug}`), lastmod: p.updated_at ? new Date(p.updated_at).toISOString().slice(0, 10) : undefined }); }
-  for (const p of STATIC_PATHS) urls.push({ loc: abs(p) });
+  for (const p of LIST_PATHS) urls.push({ loc: abs(p) });
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}\n  </url>`).join('\n')}\n</urlset>\n`;
 }
 
@@ -321,10 +386,10 @@ async function llms(site: Site, full: boolean): Promise<string> {
   return `${L.join('\n').trim()}\n`;
 }
 
-export const SEO_KEYS = ['home', 'staff', 'sitemap', 'llms', 'llms-full', ...PAGE_SLUGS] as const;
+export const SEO_KEYS = ['home', 'staff', 'sitemap', 'llms', 'llms-full', 'partners', 'announcements', 'updates', 'album', 'albumpost', 'notfound', ...PAGE_SLUGS] as const;
 
 /** Never throws. A page that can't be fully pre-rendered degrades step by step; 503 is only used when nothing at all can be served. */
-export async function renderSeo(key: string, origin: string): Promise<SeoResponse> {
+export async function renderSeo(key: string, origin: string, id?: string): Promise<SeoResponse> {
   if (!(SEO_KEYS as readonly string[]).includes(key)) return { status: 404, type: 'text/plain; charset=utf-8', body: 'Not found', cache: 'no-store' };
   const isFile = key === 'sitemap' || key === 'llms' || key === 'llms-full';
 
@@ -345,36 +410,77 @@ export async function renderSeo(key: string, origin: string): Promise<SeoRespons
   let shell: { html: string; via: string } | null = null;
   try { shell = await getShell(origin); } catch (e) { console.error(`[seo] ${key}: no app shell:`, e); }
 
-  // No database: serve the plain app shell (the app shows its own error message), never a bare 503.
-  if (!site) {
-    if (shell) return { status: 200, type: HTML, body: shell.html, cache: 'no-store', via: `${shell.via}-noprerender` };
-    return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP is temporarily unavailable. Please try again in a minute.', cache: 'no-store', retryAfter: 60 };
-  }
+  const html = shell?.html ?? BARE_SHELL;
+  const via = shell?.via ?? 'bare';
+  const degraded = !site; // database unreadable: serve the facts that never change instead of an empty shell
+  const st: Site = site ?? fallbackSite();
+  const cache = degraded ? 'no-store' : shell ? CACHE : 'public, s-maxage=30';
+  const INDEX = 'index, follow, max-image-preview:large';
+  const unavailable = (): SeoResponse => ({ status: 503, type: HTML, body: fillShell(html, null, homeBody(st), 'MistEra SMP – temporarily unavailable'), cache: 'no-store', via: `${via}-degraded`, retryAfter: 60 });
 
   try {
-    const html = shell?.html ?? BARE_SHELL;
-    const via = shell?.via ?? 'bare';
-    const cache = shell ? CACHE : 'public, s-maxage=30';
+    if (key === 'notfound') return { status: 404, type: HTML, body: fillShell(html, null, notFoundBody(st), `Page not found | ${SITE_NAME}`), cache: 'public, s-maxage=60', via };
+
     if (key === 'home') {
-      const meta: Meta = { title: HOME_TITLE, description: homeDescription(site.s), canonical: abs('/'), robots: 'index, follow, max-image-preview:large', jsonLd: structuredData(site, true) };
-      return { status: 200, type: HTML, body: fillShell(html, meta, homeBody(site)), cache, via };
+      const meta: Meta = { title: HOME_TITLE, description: homeDescription(st.s), canonical: abs('/'), robots: INDEX, jsonLd: structuredData(st, true) };
+      return { status: 200, type: HTML, body: fillShell(html, meta, homeBody(st)), cache, via: degraded ? `${via}-degraded` : via };
     }
     if (key === 'staff') {
-      const meta: Meta = { title: 'Staff Team | MistEra SMP', description: staffDescription(site.staff), canonical: abs('/staff'), robots: 'index, follow, max-image-preview:large', jsonLd: structuredData(site, false) };
-      return { status: 200, type: HTML, body: fillShell(html, meta, staffBody(site)), cache, via };
+      const meta: Meta = { title: 'Staff Team | MistEra SMP', description: staffDescription(st.staff), canonical: abs('/staff'), robots: INDEX, jsonLd: structuredData(st, false) };
+      return { status: 200, type: HTML, body: fillShell(html, meta, staffBody(st)), cache, via: degraded ? `${via}-degraded` : via };
     }
+    // Everything below needs live data. If the database is down a crawler gets 503 + Retry-After (it comes back later and keeps the page indexed).
+    if (degraded) return unavailable();
+
+    if (key === 'partners' || key === 'announcements' || key === 'updates' || key === 'album') {
+      const m = LIST_META[key];
+      const meta: Meta = { title: m.title, description: m.description, canonical: abs(`/${key}`), robots: INDEX };
+      let body: string;
+      if (key === 'partners') {
+        const rows = mustOr(await db().from('partners').select('*').order('name', { ascending: true }).limit(200), 'seo.partners', [] as PartnerRow[]) as PartnerRow[];
+        body = partnersBody(st, rows);
+      } else if (key === 'album') {
+        body = albumBody(st, await loadAlbum(60));
+      } else {
+        const rows = mustOr(await db().from('posts').select('*').eq('published', true).eq('kind', key === 'announcements' ? 'Announcement' : 'Update').order('published_at', { ascending: false, nullsFirst: false }).limit(30), 'seo.posts', [] as PostRow[]) as PostRow[];
+        body = postsBody(st, key, rows);
+      }
+      return { status: 200, type: HTML, body: fillShell(html, meta, body), cache, via };
+    }
+
+    if (key === 'albumpost') {
+      const a = id && isUuid(id) ? (await loadAlbum(1, id))[0] : undefined;
+      if (!a) return { status: 404, type: HTML, body: fillShell(html, null, notFoundBody(st), `Post not found | ${SITE_NAME}`), cache: 'public, s-maxage=60', via };
+      const caption = oneLine(a.caption ?? '');
+      const title = clip(`${albumTitle(a)} | ${SITE_NAME}`, 60);
+      const description = clip(caption || `${albumTitle(a)} in the ${SITE_NAME} Community Album, a Minecraft Bedrock survival server from Bangladesh.`, 160);
+      // User-generated and thin, so it stays out of search results (noindex) - but it renders real text, and chat apps get a proper link preview.
+      const meta: Meta = { title, description, canonical: abs(`/album/${a.id}`), robots: 'noindex, follow', ...(a.media_type === 'video' ? { video: httpUrl(a.image_url) } : { image: httpUrl(a.image_url) }) };
+      return { status: 200, type: HTML, body: fillShell(html, meta, albumPostBody(st, a)), cache, via };
+    }
+
     const slug = key as PageSlug;
-    const page = site.pages.get(slug);
+    const page = st.pages.get(slug);
     // Not published (or empty): the app still shows its "not published yet" message, but it is a 404 and out of the index.
-    if (!page) return { status: 404, type: HTML, body: fillShell(html, null, ''), cache: 'public, s-maxage=60', via };
+    if (!page) return { status: 404, type: HTML, body: fillShell(html, null, notFoundBody(st), `Page not found | ${SITE_NAME}`), cache: 'public, s-maxage=60', via };
     const title = clip(`${page.title?.trim() || PAGE_TITLES[slug]} | ${SITE_NAME}`, 60);
     const text = oneLine(markdownToText(page.content ?? ''));
     const description = text.length >= 60 ? clip(text, 160) : PAGE_DESCRIPTION[slug];
-    const meta: Meta = { title, description, canonical: abs(`/${slug}`), robots: 'index, follow, max-image-preview:large', jsonLd: slug === 'about' ? structuredData(site, false) : undefined };
-    return { status: 200, type: HTML, body: fillShell(html, meta, pageBody(site, slug, page)), cache, via };
+    const meta: Meta = { title, description, canonical: abs(`/${slug}`), robots: INDEX, jsonLd: slug === 'about' ? structuredData(st, false) : undefined };
+    return { status: 200, type: HTML, body: fillShell(html, meta, pageBody(st, slug, page)), cache, via };
   } catch (e) {
     console.error(`[seo] ${key} render failed:`, e);
-    if (shell) return { status: 200, type: HTML, body: shell.html, cache: 'no-store', via: `${shell.via}-noprerender` };
-    return { status: 503, type: 'text/plain; charset=utf-8', body: 'MistEra SMP is temporarily unavailable. Please try again in a minute.', cache: 'no-store', retryAfter: 60 };
+    return unavailable();
   }
+}
+
+/** Approved album posts (newest first) with the uploader's @name. With `id`, just that one post. */
+async function loadAlbum(limit: number, id?: string): Promise<AlbumView[]> {
+  let q = db().from('album_submissions').select('*').eq('status', 'Approved');
+  q = id ? q.eq('id', id) : q.order('submitted_at', { ascending: false }).limit(limit);
+  const rows = mustOr(await q, 'seo.album', [] as AlbumRow[]) as AlbumRow[];
+  const ids = [...new Set(rows.map((a) => a.uploader).filter((x): x is string => !!x))];
+  const names = new Map<string, string>();
+  if (ids.length) for (const p of (mustOr(await db().from('profiles').select('user_id,username').in('user_id', ids), 'seo.albumNames', [] as { user_id: string; username: string | null }[]) as { user_id: string; username: string | null }[])) names.set(p.user_id, p.username ?? 'a member');
+  return rows.map((a) => ({ ...a, uploaderName: (a.uploader && names.get(a.uploader) ? `@${names.get(a.uploader)}` : 'a former member') }));
 }

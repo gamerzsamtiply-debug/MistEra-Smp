@@ -39,9 +39,9 @@ export const PEOPLE: KnownPerson[] = [
   {
     name: 'Zenko Playz',
     aliases: ['Zenko Play', 'ZenkoPlayz', 'Zenko Place'],
-    role: 'Moderator',
+    role: 'Admin',
     description:
-      'Zenko Playz is a moderator and one of the higher authorities of MistEra SMP Season 2, a dedicated 24/7 whitelisted Minecraft Bedrock server, and a moderator of the Minecraft Bangladesh Facebook group.',
+      'Zenko Playz is an admin of MistEra SMP Season 2, a dedicated 24/7 whitelisted Minecraft Bedrock server from Bangladesh, and a moderator of the Minecraft Bangladesh Facebook group.',
     questions: ['Who is Zenko Playz?', 'Who is Zenko Playz in MistEra?', 'Who is Zenko Place?'],
   },
   {

@@ -140,7 +140,9 @@ export interface PublicUser {
 export interface AlbumCommentRow {
   id: string;
   submission_id: string;
-  user_id: string;
+  user_id: string | null;
+  guest_name?: string | null;
+  guest_key?: string | null;
   parent_id: string | null;
   body: string | null;
   created_at: string | null;

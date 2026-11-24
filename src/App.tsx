@@ -13,6 +13,7 @@ import StaffPage from './pages/StaffPage';
 import PartnersPage from './pages/PartnersPage';
 import PostsPage from './pages/PostsPage';
 import AlbumPage from './pages/AlbumPage';
+import AlbumPostPage from './pages/AlbumPostPage';
 import LoginPage from './pages/LoginPage';
 import WelcomePage from './pages/WelcomePage';
 import { markVisited } from './lib/firstVisit';
@@ -80,6 +81,7 @@ export default function App() {
                 <Route path="/announcements" element={<PostsPage kind="Announcement" />} />
                 <Route path="/updates" element={<PostsPage kind="Update" />} />
                 <Route path="/album" element={<AlbumPage />} />
+                <Route path="/album/:id" element={<AlbumPostPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/u/:id" element={<PublicProfile />} />
                 <Route path="/welcome" element={<RequireAuth><WelcomePage /></RequireAuth>} />

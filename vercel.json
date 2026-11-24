@@ -42,6 +42,26 @@
       "destination": "/api/seo?p=privacy"
     },
     {
+      "source": "/partners",
+      "destination": "/api/seo?p=partners"
+    },
+    {
+      "source": "/announcements",
+      "destination": "/api/seo?p=announcements"
+    },
+    {
+      "source": "/updates",
+      "destination": "/api/seo?p=updates"
+    },
+    {
+      "source": "/album",
+      "destination": "/api/seo?p=album"
+    },
+    {
+      "source": "/album/:id",
+      "destination": "/api/seo?p=albumpost&id=:id"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/seo?p=sitemap"
     },
@@ -54,8 +74,16 @@
       "destination": "/api/seo?p=llms-full"
     },
     {
-      "source": "/((?!api/|assets/|images/|fonts/|favicon[^/]*|sw\\.js|apple-touch-icon\\.png|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)",
+      "source": "/(login|reset-password|profile|welcome|suggestions|feedback|admin|401|403|500|503)",
       "destination": "/app-shell"
+    },
+    {
+      "source": "/u/:path*",
+      "destination": "/app-shell"
+    },
+    {
+      "source": "/((?!api/|assets/|images/|fonts/|app-shell|favicon[^/]*|sw\\.js|apple-touch-icon\\.png|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)",
+      "destination": "/api/seo?p=notfound"
     }
   ],
   "headers": [

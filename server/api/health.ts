@@ -3,7 +3,7 @@ import { publicEndpoint } from '../endpoint.js';
 import { db } from '../db.js';
 import { env, supabaseUrl } from '../env.js';
 
-const TABLES = ['site_settings', 'join_steps', 'profiles', 'posts', 'partners', 'album_submissions', 'suggestions', 'activity_logs', 'error_logs', 'staff_members', 'feedback', 'album_likes', 'album_comments'];
+const TABLES = ['site_settings', 'join_steps', 'profiles', 'posts', 'partners', 'album_submissions', 'suggestions', 'activity_logs', 'error_logs', 'staff_members', 'feedback', 'album_likes', 'album_comments', 'push_subscriptions'];
 
 /**
  * Setup checker. Open https://YOUR-SITE/api/health with a POST (or the Admin > Overview card) to see exactly what is

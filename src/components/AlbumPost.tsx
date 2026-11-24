@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { Download, Eye, Heart, Loader2, MessageCircle, Send, Trash2 } from 'lucide-react';
+import { Download, Eye, Heart, Link2, Loader2, MessageCircle, Send, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { addAlbumComment, deleteAlbumComment, listAlbumComments, toggleAlbumLike, trackAlbumView, type AlbumComment, type AlbumItem } from '@/lib/api';
 import { visitorId } from '@/lib/visitor';
 import { sfx } from '@/lib/sfx';
-import { loginWithRedirect, useAuth } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
+import { getGuestName, randomGuestName, setGuestName, validGuestName } from '@/lib/guest';
 import { Input } from '@project/components/ui/input';
 import { Button } from '@project/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@project/components/ui/dialog';
@@ -55,9 +57,9 @@ function CommentInput({ placeholder, onSubmit, autoFocus, onCancel }: { placehol
 function CommentRow({ c, onReply, onDelete, small }: { c: AlbumComment; onReply?: () => void; onDelete: () => void; small?: boolean }) {
   return (
     <div className="flex gap-2.5">
-      {c.user ? <Link to={`/u/${c.user.id}`}><UserAvatar username={c.user.username} avatarUrl={c.user.avatarUrl} className={small ? 'h-6 w-6' : 'h-8 w-8'} /></Link> : <UserAvatar username="??" className={small ? 'h-6 w-6' : 'h-8 w-8'} />}
+      {c.user ? <Link to={`/u/${c.user.id}`}><UserAvatar username={c.user.username} avatarUrl={c.user.avatarUrl} className={small ? 'h-6 w-6' : 'h-8 w-8'} /></Link> : <UserAvatar username={c.guestName ?? '??'} className={small ? 'h-6 w-6' : 'h-8 w-8'} />}
       <div className="min-w-0 flex-1">
-        <p className="break-words text-sm"><span className="font-semibold">{c.user ? `@${c.user.username}` : 'Former member'}</span> <span className="text-foreground/90">{c.body}</span></p>
+        <p className="break-words text-sm"><span className="font-semibold">{c.user ? `@${c.user.username}` : c.guestName ? c.guestName : 'Former member'}</span>{!c.user && c.guestName && <span className="ml-1.5 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Guest</span>} <span className="text-foreground/90">{c.body}</span></p>
         <p className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
           <span>{ago(c.createdAt)}</span>
           {onReply && <button type="button" onClick={onReply} className="font-medium hover:text-foreground">Reply</button>}
@@ -68,22 +70,43 @@ function CommentRow({ c, onReply, onDelete, small }: { c: AlbumComment; onReply?
   );
 }
 
+/** Shown to a guest the first time they comment: pick the name the comment will carry (a random one is suggested). */
+function GuestNameForm({ onDone, onCancel, initial }: { onDone: (name: string) => void; onCancel: () => void; initial?: string }) {
+  const [name, setName] = useState(initial || randomGuestName());
+  const ok = validGuestName(name);
+  const save = () => { if (!ok) return; setGuestName(name); onDone(name.trim()); };
+  return (
+    <div className="space-y-2 rounded-lg border border-border bg-secondary/40 p-3">
+      <p className="text-sm font-medium">Set guest name</p>
+      <p className="text-xs text-muted-foreground">This is the name shown on your comments. You can change it any time. Log in to comment as yourself.</p>
+      <div className="flex items-center gap-2">
+        <Input value={name} maxLength={24} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } }} className="h-9" aria-label="Guest name" />
+        <Button type="button" size="sm" onClick={save} disabled={!ok}>Save</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
+      </div>
+      {!ok && <p className="text-xs text-destructive">2 to 24 characters: letters, numbers, spaces, _ . -</p>}
+    </div>
+  );
+}
+
 function Comments({ postId, onCount }: { postId: string; onCount: (delta: number) => void }) {
   const [items, setItems] = useState<AlbumComment[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [guestName, setGuest] = useState(getGuestName());
+  const [namingGuest, setNamingGuest] = useState(false);
   const { user } = useAuth();
 
   const load = useCallback(() => {
     setFailed(false);
-    listAlbumComments({ id: postId }).then((d) => setItems(d.comments)).catch(() => setFailed(true));
+    listAlbumComments({ id: postId, visitorId: visitorId() }).then((d) => setItems(d.comments)).catch(() => setFailed(true));
   }, [postId]);
   useEffect(() => { load(); }, [load]); // loads when the section opens
 
   const add = async (body: string, parentId: string | null): Promise<boolean> => {
-    if (!user) { loginWithRedirect(); return false; }
+    if (!user && !guestName) { setNamingGuest(true); return false; } // a guest picks a name before the first comment
     try {
-      const r = await run('Add comment', () => addAlbumComment({ id: postId, body, parentId }), { failTitle: 'Could not post your comment' });
+      const r = await run('Add comment', () => addAlbumComment({ id: postId, body, parentId, ...(user ? {} : { visitorId: visitorId(), guestName }) }), { failTitle: 'Could not post your comment' });
       if (!r) return false;
       setItems((cur) => [...(cur ?? []), r.comment]);
       onCount(1);
@@ -93,7 +116,7 @@ function Comments({ postId, onCount }: { postId: string; onCount: (delta: number
   };
   const remove = async (c: AlbumComment) => {
     try {
-      await run('Delete comment', () => deleteAlbumComment({ id: c.id }), { failTitle: 'Could not delete the comment' });
+      await run('Delete comment', () => deleteAlbumComment({ id: c.id, visitorId: visitorId() }), { failTitle: 'Could not delete the comment' });
       setItems((cur) => {
         const list = cur ?? [];
         const gone = new Set([c.id, ...list.filter((x) => x.parentId === c.id).map((x) => x.id)]);
@@ -106,7 +129,9 @@ function Comments({ postId, onCount }: { postId: string; onCount: (delta: number
   const tops = (items ?? []).filter((c) => !c.parentId);
   return (
     <div className="mt-4 space-y-4 border-t border-border pt-4">
-      {user ? <CommentInput placeholder="Add a comment..." onSubmit={(t) => add(t, null)} /> : <button type="button" onClick={() => loginWithRedirect()} className="text-sm font-medium text-primary hover:underline">Log in to comment</button>}
+      {namingGuest && <GuestNameForm initial={guestName} onDone={(n) => { setGuest(n); setNamingGuest(false); }} onCancel={() => setNamingGuest(false)} />}
+      <CommentInput placeholder="Add a comment..." onSubmit={(t) => add(t, null)} />
+      {!user && guestName && !namingGuest && <p className="-mt-2 text-xs text-muted-foreground">Commenting as <span className="font-medium text-foreground">{guestName}</span> (guest) · <button type="button" className="font-medium text-primary hover:underline" onClick={() => setNamingGuest(true)}>Change name</button></p>}
       {failed ? <p className="text-sm text-muted-foreground">Comments could not be loaded. <button type="button" className="font-medium text-primary hover:underline" onClick={load}>Try again</button></p>
         : items === null ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading comments...</p>
         : !tops.length ? <p className="text-sm text-muted-foreground">No comments yet. Be the first!</p>
@@ -116,7 +141,7 @@ function Comments({ postId, onCount }: { postId: string; onCount: (delta: number
               const replies = (items ?? []).filter((r) => r.parentId === c.id);
               return (
                 <li key={c.id} className="space-y-3">
-                  <CommentRow c={c} onReply={() => (user ? setReplyTo(replyTo === c.id ? null : c.id) : loginWithRedirect())} onDelete={() => remove(c)} />
+                  <CommentRow c={c} onReply={() => setReplyTo(replyTo === c.id ? null : c.id)} onDelete={() => remove(c)} />
                   {(replies.length > 0 || replyTo === c.id) && (
                     <div className="ml-10 space-y-3 border-l border-border pl-3">
                       {replies.map((r) => <CommentRow key={r.id} c={r} small onReply={() => setReplyTo(c.id)} onDelete={() => remove(r)} />)}
@@ -164,12 +189,23 @@ export default function AlbumPost({ post }: { post: AlbumItem }) {
     return () => { window.clearTimeout(timer); io.disconnect(); };
   }, [post.id]);
 
+  const shareLink = async () => {
+    const url = `${window.location.origin}/album/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const t = document.createElement('textarea'); t.value = url; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch { /* clipboard blocked */ }
+      t.remove();
+    }
+    toast.success('Link copied', { description: 'Anyone with this link can watch it - no account needed.' });
+  };
+
   const like = async () => {
-    if (!user) return loginWithRedirect();
     const was = liked;
     setLiked(!was); setLikes((n) => Math.max(0, n + (was ? -1 : 1))); if (!was) sfx.pop(); // instant feedback, corrected by the server answer
     try {
-      const r = await run('Like', () => toggleAlbumLike({ id: post.id }), { failTitle: 'Could not update your like' });
+      const r = await run('Like', () => toggleAlbumLike({ id: post.id, ...(user ? {} : { visitorId: visitorId() }) }), { failTitle: 'Could not update your like' });
       if (r) { setLiked(r.liked); setLikes(r.likes); }
     } catch { setLiked(was); setLikes(post.likeCount); }
   };
@@ -197,6 +233,7 @@ export default function AlbumPost({ post }: { post: AlbumItem }) {
           <button type="button" onClick={() => setShowComments((s) => !s)} aria-expanded={showComments} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             <MessageCircle className="h-5 w-5" />{comments}
           </button>
+          <button type="button" onClick={shareLink} aria-label="Copy link" title="Copy link" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"><Link2 className="h-5 w-5" /></button>
           <a href={dl} download aria-label={post.mediaType === 'video' ? 'Download video' : 'Download picture'} title="Download" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"><Download className="h-5 w-5" /></a>
           <span className="ml-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground" title={`${views} views`} aria-label={`${views} views`}><Eye className="h-5 w-5" />{views}</span>
         </div>

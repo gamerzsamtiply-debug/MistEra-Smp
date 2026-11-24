@@ -36,7 +36,7 @@ export default function StaffPage() {
           return (
             <section key={pos}>
               <h2 className="mb-5 text-xl font-semibold">{pos}{pos === 'Owner' || pos === 'Staff' ? '' : 's'}</h2>
-              <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">{list.map((s) => <StaffCard key={s.id} s={s} />)}</div>
+              <ul className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">{list.map((s) => <li key={s.id} className="contents"><StaffCard s={s} /></li>)}</ul>
             </section>
           );
         })}

@@ -2,6 +2,7 @@ import { db, must, mustOr, isUuid } from './db.js';
 import { fail } from './errors.js';
 import { toPublicUser, siteOwnerUserId } from './lib.js';
 import type { AuthUser } from './auth.js';
+import { pushToUsers } from './push.js';
 import type { ProfileRow, PublicUser } from './types.js';
 
 export type NotificationType = 'follow' | 'comment' | 'post' | 'like';
@@ -40,17 +41,23 @@ export interface NewNotification {
   url?: string;
 }
 
-/** Notifications are a courtesy: a failure to write one must never fail the action that caused it. */
+/** Notifications are a courtesy: a failure to write one must never fail the action that caused it. Each one is also pushed to the person's phone. */
 export async function notify(items: NewNotification[]): Promise<void> {
   const rows = items.filter((n) => n.userId && n.userId !== n.actorId).map((n) => ({
     user_id: n.userId, actor_id: n.actorId, type: n.type, title: n.title.slice(0, 160), body: (n.body ?? '').slice(0, 240), url: (n.url ?? '').slice(0, 300),
   }));
   if (!rows.length) return;
   try {
+    const saved: { id: string; user_id: string; title: string; body: string; url: string }[] = [];
     for (let i = 0; i < rows.length; i += 200) {
-      const r = await db().from('notifications').insert(rows.slice(i, i + 200));
+      const r = await db().from('notifications').insert(rows.slice(i, i + 200)).select('id,user_id,title,body,url');
       if (r.error) console.error('[db] notifications.insert:', r.error);
+      else saved.push(...((r.data ?? []) as typeof saved));
     }
+    // The tag is the same one the open website uses (n-<id>), so a device never shows the same alert twice.
+    const byUser = new Map<string, (typeof saved)[number]>();
+    for (const n of saved) byUser.set(n.user_id, n); // one push per person per call (the latest)
+    await pushToUsers([...byUser.keys()], (uid) => { const n = byUser.get(uid)!; return { title: n.title, body: n.body, url: n.url || '/', tag: `n-${n.id}` }; });
   } catch (e) {
     console.error('[db] notifications.insert threw:', e);
   }

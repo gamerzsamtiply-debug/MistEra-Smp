@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "MistEra SMP official website \u2014 React + Vite frontend, Vercel serverless API, Supabase (Postgres, Auth, Storage).",
+  "description": "MistEra SMP official website — React + Vite frontend, Vercel serverless API, Supabase (Postgres, Auth, Storage).",
   "engines": {
     "node": "22.x"
   },
@@ -76,6 +76,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
     "tiptap-markdown": "^0.9.0",
+    "web-push": "^3.6.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -83,6 +84,7 @@
     "@types/node": "^22.13.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.21.5",
